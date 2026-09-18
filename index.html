@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BuildNow.gg 3D - OBJ Player Model</title>
+    <title>BuildNow.gg 3D - Textured OBJ Player Model</title>
     <style>
         body {
             margin: 0;
@@ -196,16 +196,19 @@
             playerGroup.position.set(0, 0, 10);
             scene.add(playerGroup);
 
-            // Load s.m.obj using OBJLoader
+            // Load texture and s.m.obj using OBJLoader
+            const textureLoader = new THREE.TextureLoader();
+            const playerTexture = textureLoader.load('1_base_color.png');
+
             const objLoader = new THREE.OBJLoader();
             objLoader.load('s.m.obj', (object) => {
                 object.scale.set(0.01, 0.01, 0.01);
                 object.position.set(0, 0, 0);
                 
-                // Optional: apply a clean material if the obj doesn't load with colors
+                // Apply texture map to the model's materials
                 object.traverse((child) => {
                     if (child.isMesh) {
-                        child.material = new THREE.MeshBasicMaterial({ color: 0x2979ff });
+                        child.material = new THREE.MeshBasicMaterial({ map: playerTexture });
                     }
                 });
 
