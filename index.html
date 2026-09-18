@@ -196,7 +196,7 @@
             playerGroup.position.set(0, 0, 10);
             scene.add(playerGroup);
 
-            // Load texture and s.m.obj using OBJLoader
+            // Load texture and s.m.obj using OBJLoader with double-sided rendering
             const textureLoader = new THREE.TextureLoader();
             const playerTexture = textureLoader.load('1_base_color.png');
 
@@ -205,10 +205,13 @@
                 object.scale.set(0.01, 0.01, 0.01);
                 object.position.set(0, 0, 0);
                 
-                // Apply texture map to the model's materials
+                // Apply texture map and render both sides
                 object.traverse((child) => {
                     if (child.isMesh) {
-                        child.material = new THREE.MeshBasicMaterial({ map: playerTexture });
+                        child.material = new THREE.MeshBasicMaterial({ 
+                            map: playerTexture, 
+                            side: THREE.DoubleSide 
+                        });
                     }
                 });
 
