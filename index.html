@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BuildNow.gg 3D - Textured OBJ Player Model</title>
+    <title>BuildNow.gg 3D - Diagnostic OBJ Loader</title>
     <style>
         body {
             margin: 0;
@@ -196,34 +196,35 @@
             playerGroup.position.set(0, 0, 10);
             scene.add(playerGroup);
 
-            // Load texture and s.m.obj using OBJLoader with double-sided rendering
-            const textureLoader = new THREE.TextureLoader();
-            const playerTexture = textureLoader.load('1_base_color.png');
-
+            // Diagnostic OBJ Loader with forced bright green color & console logging
             const objLoader = new THREE.OBJLoader();
             objLoader.load('s.m.obj', (object) => {
-                object.scale.set(0.01, 0.01, 0.01);
+                console.log("SUCCESS: s.m.obj loaded raw object:", object);
+                
+                // Reset scale to 1 to check if he was just microscopic with 0.01
+                object.scale.set(1, 1, 1);
                 object.position.set(0, 0, 0);
                 
-                // Apply texture map and render both sides
+                let meshCount = 0;
                 object.traverse((child) => {
                     if (child.isMesh) {
+                        meshCount++;
+                        console.log(`Found mesh #${meshCount}:`, child.name, "Vertices:", child.geometry.attributes.position.count);
+                        
+                        // Force bright neon green to verify visibility
                         child.material = new THREE.MeshBasicMaterial({ 
-                            map: playerTexture, 
+                            color: 0x00ff00, 
                             side: THREE.DoubleSide 
                         });
                     }
                 });
-
+                
+                console.log(`Total meshes found in OBJ: ${meshCount}`);
                 playerGroup.add(object);
             }, (xhr) => {
                 console.log((xhr.loaded / xhr.total * 100) + '% loaded player model');
             }, (error) => {
-                console.warn('Could not load s.m.obj, using fallback box representation.', error);
-                const fallbackMat = new THREE.MeshBasicMaterial({ color: 0x2979ff });
-                const fallbackMesh = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.8, 0.4), fallbackMat);
-                fallbackMesh.position.y = 0.9;
-                playerGroup.add(fallbackMesh);
+                console.error('ERROR loading s.m.obj:', error);
             });
 
             updateWeaponModel();
