@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BuildNow.gg 3D - FBX Player Model</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background-color: #3399ff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
+        }
+        #game-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
+            z-index: 1;
+        }
+        #ui {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            box-sizing: border-box;
+            z-index: 10;
+        }
+        .hud-top {
+            display: flex;
+            justify-content: space-between;
+            color: white;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            font-size: 22px;
+        }
+        #fps-hud {
+            color: #00ff00;
+        }
+        .crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 10px;
+            height: 10px;
+            margin-left: -5px;
+            margin-top: -5px;
+            border: 2px solid rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .hotbar {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            pointer-events: auto;
+        }
+        .slot {
+            width: 65px;
+            height: 65px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 3px solid rgba(255, 255, 255, 0.4);
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            transition: 0.1s;
+        }
+        .slot.active {
+            border-color: #ffeb3b;
+            transform: scale(1.08);
+            background: rgba(50, 50, 50, 0.9);
+        }
+        .slot span {
+            font-size: 10px;
+            color: #ccc;
+        }
+        #instructions {
+            position: absolute;
+            top: 70px;
+            left: 20px;
+            color: white;
+            background: rgba(0, 0, 0, 0.75);
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.6;
+            pointer-events: auto;
+        }
+        #blocker {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            z-index: 20;
+        }
+    </style>
+    <!-- Three.js and FBXLoader CDNs -->
+    <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/libs/fflate.min.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/loaders/FBXLoader.js"></script>
+</head>
+<body>
+
+    <div id="blocker">
+        <div>Click Here to Start BuildNow 3D<br><span style="font-size:16px; font-weight:normal; color:#ddd;">(WASD = Move | SPACE = Jump | SHIFT = Shift-Lock | R = First-Person)</span></div>
+    </div>
+
+    <div class="crosshair"></div>
+    
+    <div id="ui" style="display:none;">
+        <div class="hud-top">
+            <div id="health-hud">HP: 100 / 100</div>
+            <div id="fps-hud">FPS: 0</div>
+            <div id="score-hud">Eliminations: 0</div>
+        </div>
+
+        <div id="instructions">
+            <b>CONTROLS:</b><br>
+            <b>W, A, S, D</b> - Walk<br>
+            <b>SHIFT (Hold)</b> - Shift-Lock Aim<br>
+            <b>R</b> - Toggle First-Person Mode<br>
+            <b>SPACE</b> - Jump<br>
+            <b>1 - 3</b> - Weapons (Pickaxe, Rifle, Shotgun)<br>
+            <b>4 - 6</b> - Builds (Wall, Floor, Ramp)<br>
+            <b>LEFT CLICK</b> - Fire / Build Structure
+        </div>
+
+        <div class="hotbar">
+            <div class="slot active" id="slot-1">⛏️<br><span>1: Pickaxe</span></div>
+            <div class="slot" id="slot-2">🔫<br><span>2: Rifle</span></div>
+            <div class="slot" id="slot-3">🎯<br><span>3: Shotgun</span></div>
+            <div class="slot" id="slot-4">🧱<br><span>4: Wall</span></div>
+            <div class="slot" id="slot-5">🟧<br><span>5: Floor</span></div>
+            <div class="slot" id="slot-6">📐<br><span>6: Ramp</span></div>
+        </div>
+    </div>
+
+    <canvas id="game-canvas"></canvas>
+
+    <script>
+        let scene, camera, renderer;
+        let score = 0, health = 100, currentSlot = 1;
+        let structures = [], bots = [], bullets = [];
+        
+        const keys = { forward: false, backward: false, left: false, right: false, shift: false };
+        let velocity = new THREE.Vector3();
+        let canJump = false;
+        
+        let playerGroup, weaponMesh;
+        let rotationY = 0, rotationX = 0;
+        let isShiftLocked = false;
+        let isFirstPerson = false;
+        const GRID_SIZE = 4;
+
+        let frameCount = 0;
+        let lastFpsUpdate = 0;
+
+        try {
+            init();
+            animate();
+        } catch (e) {
+            alert("Initialization error: " + e.message);
+        }
+
+        function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x3399ff);
+
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+            playerGroup = new THREE.Group();
+            playerGroup.position.set(0, 0, 10);
+            scene.add(playerGroup);
+
+            // Load Custom FBX Player Model (s.m.fbx)
+            const fbxLoader = new THREE.FBXLoader();
+            fbxLoader.load('s.m.fbx', (object) => {
+                // Adjust scale if your model appears too big or tiny
+                object.scale.set(0.01, 0.01, 0.01);
+                object.position.set(0, 0, 0);
+                playerGroup.add(object);
+            }, (xhr) => {
+                console.log((xhr.loaded / xhr.total * 100) + '% loaded player model');
+            }, (error) => {
+                console.warn('Could not load s.m.fbx, using fallback box representation.', error);
+                // Fallback shape if file fails to load locally
+                const fallbackMat = new THREE.MeshBasicMaterial({ color: 0x2979ff });
+                const fallbackMesh = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.8, 0.4), fallbackMat);
+                fallbackMesh.position.y = 0.9;
+                playerGroup.add(fallbackMesh);
+            });
+
+            updateWeaponModel();
+
+            const floorGeo = new THREE.PlaneGeometry(200, 200);
+            const floorMat = new THREE.MeshBasicMaterial({ color: 0x2e8b57 });
+            const floor = new THREE.Mesh(floorGeo, floorMat);
+            floor.rotation.x = -Math.PI / 2;
+            scene.add(floor);
+
+            const gridHelper = new THREE.GridHelper(200, 50, 0xffffff, 0x444444);
+            gridHelper.position.y = 0.02;
+            scene.add(gridHelper);
+
+            const canvasElement = document.getElementById('game-canvas');
+            renderer = new THREE.WebGLRenderer({ canvas: canvasElement, antialias: true, powerPreference: "high-performance" });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.setClearColor(0x3399ff, 1);
+
+            const blocker = document.getElementById('blocker');
+            blocker.addEventListener('click', () => {
+                canvasElement.requestPointerLock();
+            });
+
+            document.addEventListener('pointerlockchange', () => {
+                let isLocked = document.pointerLockElement === canvasElement;
+                blocker.style.display = isLocked ? 'none' : 'flex';
+                document.getElementById('ui').style.display = isLocked ? 'flex' : 'none';
+            });
+
+            document.addEventListener('mousemove', e => {
+                if (document.pointerLockElement !== canvasElement) return;
+                const sensitivity = 0.003;
+                rotationY -= e.movementX * sensitivity;
+                rotationX -= e.movementY * sensitivity;
+                rotationX = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, rotationX));
+            });
+
+            window.addEventListener('keydown', e => handleKeys(e, true));
+            window.addEventListener('keyup', e => handleKeys(e, false));
+            window.addEventListener('mousedown', fireOrBuild);
+
+            for (let i = 0; i < 3; i++) spawnBot();
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        function handleKeys(e, isDown) {
+            switch (e.code) {
+                case 'KeyW': case 'ArrowUp': keys.forward = isDown; break;
+                case 'KeyS': case 'ArrowDown': keys.backward = isDown; break;
+                case 'KeyA': case 'ArrowLeft': keys.left = isDown; break;
+                case 'KeyD': case 'ArrowRight': keys.right = isDown; break;
+                case 'ShiftLeft': case 'ShiftRight': keys.shift = isDown; break;
+                case 'KeyR':
+                    if (isDown) isFirstPerson = !isFirstPerson;
+                    break;
+                case 'Space': 
+                    if (isDown && canJump) {
+                        velocity.y = 10;
+                        canJump = false;
+                    }
+                    break;
+                case 'Digit1': case 'Digit2': case 'Digit3': case 'Digit4': case 'Digit5': case 'Digit6':
+                    if (isDown) {
+                        currentSlot = parseInt(e.code.replace('Digit', ''));
+                        updateHotbarUI();
+                        updateWeaponModel();
+                    }
+                    break;
+            }
+        }
+
+        function updateHotbarUI() {
+            for (let i = 1; i <= 6; i++) {
+                document.getElementById(`slot-${i}`).classList.toggle('active', i === currentSlot);
+            }
+        }
+
+        function updateWeaponModel() {
+            if (weaponMesh) playerGroup.remove(weaponMesh);
+
+            let geo, mat;
+            if (currentSlot === 1) {
+                geo = new THREE.BoxGeometry(0.2, 1.2, 0.4);
+                mat = new THREE.MeshBasicMaterial({ color: 0x888888 });
+            } else if (currentSlot === 2) {
+                geo = new THREE.BoxGeometry(0.3, 0.4, 1.5);
+                mat = new THREE.MeshBasicMaterial({ color: 0x222222 });
+            } else if (currentSlot === 3) {
+                geo = new THREE.BoxGeometry(0.4, 0.4, 1.2);
+                mat = new THREE.MeshBasicMaterial({ color: 0x8b4513 });
+            } else {
+                geo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+                mat = new THREE.MeshBasicMaterial({ color: 0xffeb3b });
+            }
+
+            weaponMesh = new THREE.Mesh(geo, mat);
+            weaponMesh.position.set(0.6, 1.3, -0.5);
+            playerGroup.add(weaponMesh);
+        }
+
+        function spawnBot() {
+            const botGroup = new THREE.Group();
+            const botSkinMat = new THREE.MeshBasicMaterial({ color: 0xffdbac });
+            const botShirtMat = new THREE.MeshBasicMaterial({ color: 0xff3333 }); 
+
+            const torsoMesh = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.1, 0.4), botShirtMat);
+            torsoMesh.position.y = 1.35;
+            botGroup.add(torsoMesh);
+
+            const headMesh = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.5), botSkinMat);
+            headMesh.position.y = 2.15;
+            botGroup.add(headMesh);
+
+            const hbBgGeo = new THREE.PlaneGeometry(1.5, 0.2);
+            const hbBgMat = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.DoubleSide });
+            const hbBg = new THREE.Mesh(hbBgGeo, hbBgMat);
+            hbBg.position.y = 2.8;
+            botGroup.add(hbBg);
+
+            const hbFillGeo = new THREE.PlaneGeometry(1.4, 0.15);
+            const hbFillMat = new THREE.MeshBasicMaterial({ color: 0x00ff00, side: THREE.DoubleSide });
+            const hbFill = new THREE.Mesh(hbFillGeo, hbFillMat);
+            hbFill.position.set(0, 2.8, 0.01);
+            botGroup.add(hbFill);
+
+            botGroup.position.set(
+                (Math.random() - 0.5) * 60,
+                0,
+                (Math.random() - 0.5) * 60
+            );
+
+            scene.add(botGroup);
+            bots.push({ group: botGroup, fill: hbFill, health: 50, maxHealth: 50, speed: 0.035 });
+        }
+
+        let lastActionTime = 0;
+        function fireOrBuild() {
+            if (document.pointerLockElement !== document.getElementById('game-canvas')) return;
+            const now = performance.now();
+
+            const forwardDir = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY);
+
+            if (currentSlot >= 1 && currentSlot <= 3) {
+                if (now - lastActionTime < 150) return;
+                lastActionTime = now;
+                
+                let maxRange = currentSlot === 1 ? 3.5 : 100;
+                let damage = currentSlot === 1 ? 25 : (currentSlot === 2 ? 12 : 35);
+
+                if (currentSlot === 1) {
+                    bots.forEach(bot => {
+                        let dist = playerGroup.position.distanceTo(bot.group.position);
+                        if (dist <= maxRange) {
+                            bot.health -= damage;
+                            let healthPercent = Math.max(0, bot.health / bot.maxHealth);
+                            bot.fill.scale.x = healthPercent;
+                            bot.fill.position.x = -0.7 * (1 - healthPercent);
+
+                            if (bot.health <= 0) {
+                                score++;
+                                document.getElementById('score-hud').innerText = `Eliminations: ${score}`;
+                                bot.group.position.set((Math.random() - 0.5) * 60, 0, (Math.random() - 0.5) * 60);
+                                bot.health = bot.maxHealth;
+                                bot.fill.scale.x = 1;
+                                bot.fill.position.x = 0;
+                            }
+                        }
+                    });
+                } else {
+                    bullets.push({
+                        position: playerGroup.position.clone().add(new THREE.Vector3(0, 1.5, 0)),
+                        velocity: forwardDir.multiplyScalar(3),
+                        damage: damage,
+                        life: 50
+                    });
+                }
+
+            } else if (currentSlot >= 4 && currentSlot <= 6) {
+                if (now - lastActionTime < 250) return;
+                lastActionTime = now;
+
+                const spawnPos = playerGroup.position.clone().add(forwardDir.multiplyScalar(5));
+                spawnPos.x = Math.round(spawnPos.x / GRID_SIZE) * GRID_SIZE;
+                spawnPos.z = Math.round(spawnPos.z / GRID_SIZE) * GRID_SIZE;
+
+                let geo, mat, yOffset = 0, isRamp = false;
+                if (currentSlot === 4) {
+                    geo = new THREE.BoxGeometry(GRID_SIZE, GRID_SIZE, 0.4);
+                    mat = new THREE.MeshBasicMaterial({ color: 0xcccccc });
+                    yOffset = GRID_SIZE / 2;
+                } else if (currentSlot === 5) {
+                    geo = new THREE.BoxGeometry(GRID_SIZE, 0.4, GRID_SIZE);
+                    mat = new THREE.MeshBasicMaterial({ color: 0x99aaaf });
+                    yOffset = 0.2;
+                } else {
+                    geo = new THREE.BoxGeometry(GRID_SIZE, 0.4, GRID_SIZE);
+                    mat = new THREE.MeshBasicMaterial({ color: 0xeefefe });
+                    yOffset = 0.2;
+                    isRamp = true;
+                }
+
+                spawnPos.y = yOffset;
+                const mesh = new THREE.Mesh(geo, mat);
+                mesh.position.copy(spawnPos);
+                if(isRamp) {
+                    mesh.rotation.x = Math.PI / 4;
+                    mesh.position.y += 1.4;
+                }
+
+                scene.add(mesh);
+                structures.push({ 
+                    mesh: mesh, 
+                    type: currentSlot === 4 ? 'wall' : (currentSlot === 5 ? 'floor' : 'ramp'), 
+                    isRamp: isRamp 
+                });
+
+                if (structures.length > 30) {
+                    scene.remove(structures[0].mesh);
+                    structures.shift();
+                }
+            }
+        }
+
+        function updatePhysics(delta) {
+            velocity.y -= 25.0 * delta;
+
+            const moveSpeed = 12.0;
+            let moveDir = new THREE.Vector3();
+
+            if (keys.forward) moveDir.z -= 1;
+            if (keys.backward) moveDir.z += 1;
+            if (keys.left) moveDir.x -= 1;
+            if (keys.right) moveDir.x += 1;
+            moveDir.normalize();
+
+            moveDir.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY);
+
+            let nextX = playerGroup.position.x + moveDir.x * moveSpeed * delta;
+            let nextZ = playerGroup.position.z + moveDir.z * moveSpeed * delta;
+            let nextY = playerGroup.position.y + velocity.y * delta;
+
+            let onGround = false;
+
+            for (let s of structures) {
+                if (s.type === 'floor') {
+                    let topY = s.mesh.position.y + 0.2;
+                    if (Math.abs(nextX - s.mesh.position.x) <= GRID_SIZE / 2 && 
+                        Math.abs(nextZ - s.mesh.position.z) <= GRID_SIZE / 2) {
+                        if (playerGroup.position.y >= topY - 0.6 && velocity.y <= 0) {
+                            nextY = topY;
+                            velocity.y = 0;
+                            onGround = true;
+                        }
+                    }
+                } else if (s.type === 'ramp') {
+                    let localPos = s.mesh.worldToLocal(new THREE.Vector3(nextX, nextY, nextZ));
+                    let half = GRID_SIZE / 2;
+                    if (localPos.x >= -half && localPos.x <= half && localPos.z >= -half && localPos.z <= half) {
+                        let slopeTopY = s.mesh.position.y + (-localPos.z / half) * (GRID_SIZE / 2) + 0.5;
+                        if (playerGroup.position.y >= slopeTopY - 1.0 && velocity.y <= 0) {
+                            nextY = slopeTopY;
+                            velocity.y = 0;
+                            onGround = true;
+                        }
+                    }
+                } else if (s.type === 'wall') {
+                    const wallX = s.mesh.position.x;
+                    const wallZ = s.mesh.position.z;
+                    const halfSize = GRID_SIZE / 2;
+                    const playerRadius = 0.4;
+
+                    if (nextX + playerRadius > wallX - halfSize && nextX - playerRadius < wallX + halfSize &&
+                        nextZ + playerRadius > wallZ - halfSize && nextZ - playerRadius < wallZ + halfSize) {
+                        
+                        let currentXBox = Math.abs(playerGroup.position.x - wallX) < halfSize + playerRadius;
+                        let currentZBox = Math.abs(playerGroup.position.z - wallZ) < halfSize + playerRadius;
+
+                        if (!currentXBox) nextX = playerGroup.position.x;
+                        if (!currentZBox) nextZ = playerGroup.position.z;
+                    }
+                }
+            }
+
+            playerGroup.position.x = nextX;
+            playerGroup.position.z = nextZ;
+            playerGroup.position.y = nextY;
+
+            isShiftLocked = keys.shift;
+            playerGroup.rotation.y = rotationY;
+
+            if (playerGroup.position.y <= 0) {
+                playerGroup.position.y = 0;
+                velocity.y = 0;
+                onGround = true;
+            }
+            canJump = onGround;
+
+            if (isFirstPerson) {
+                camera.position.set(
+                    playerGroup.position.x,
+                    playerGroup.position.y + 2.1,
+                    playerGroup.position.z
+                );
+                let lookTarget = camera.position.clone().add(new THREE.Vector3(
+                    -Math.sin(rotationY) * Math.cos(rotationX),
+                    Math.sin(rotationX),
+                    -Math.cos(rotationY) * Math.cos(rotationX)
+                ));
+                camera.lookAt(lookTarget);
+            } else if (isShiftLocked) {
+                let camDistX = Math.sin(rotationY) * 4.5;
+                let camDistZ = Math.cos(rotationY) * 4.5;
+                camera.position.set(
+                    playerGroup.position.x + camDistX,
+                    playerGroup.position.y + 2.2 + (rotationX * -3),
+                    playerGroup.position.z + camDistZ
+                );
+                camera.lookAt(playerGroup.position.clone().add(new THREE.Vector3(0, 1.5, 0)));
+            } else {
+                let camDistX = Math.sin(rotationY) * 5;
+                let camDistZ = Math.cos(rotationY) * 5;
+                camera.position.set(
+                    playerGroup.position.x + camDistX,
+                    playerGroup.position.y + 3 + (rotationX * -5),
+                    playerGroup.position.z + camDistZ
+                );
+                camera.lookAt(playerGroup.position.clone().add(new THREE.Vector3(0, 1.5, 0)));
+            }
+        }
+
+        function updateBots() {
+            bots.forEach(bot => {
+                const botPos = bot.group.position;
+                const angle = Math.atan2(playerGroup.position.x - botPos.x, playerGroup.position.z - botPos.z);
+                
+                botPos.x += Math.sin(angle) * bot.speed;
+                botPos.z += Math.cos(angle) * bot.speed;
+                bot.group.rotation.y = rotationY;
+
+                if (botPos.distanceTo(playerGroup.position) < 2.0) {
+                    health -= 0.5;
+                    document.getElementById('health-hud').innerText = `HP: ${Math.max(0, Math.round(health))} / 100`;
+                    if (health <= 0) {
+                        alert('Eliminated! Restarting...');
+                        health = 100;
+                        score = 0;
+                        document.getElementById('health-hud').innerText = `HP: 100 / 100`;
+                    }
+                }
+            });
+        }
+
+        function updateBullets() {
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                const b = bullets[i];
+                b.position.add(b.velocity);
+                b.life--;
+
+                let hit = false;
+                for (let j = 0; j < bots.length; j++) {
+                    const bot = bots[j];
+                    if (b.position.distanceTo(bot.group.position.clone().add(new THREE.Vector3(0, 1.25, 0))) < 1.5) {
+                        bot.health -= b.damage;
+                        let healthPercent = Math.max(0, bot.health / bot.maxHealth);
+                        bot.fill.scale.x = healthPercent;
+                        bot.fill.position.x = -0.7 * (1 - healthPercent);
+
+                        hit = true;
+                        if (bot.health <= 0) {
+                            score++;
+                            document.getElementById('score-hud').innerText = `Eliminations: ${score}`;
+                            bot.group.position.set((Math.random() - 0.5) * 60, 0, (Math.random() - 0.5) * 60);
+                            bot.health = bot.maxHealth;
+                            bot.fill.scale.x = 1;
+                            bot.fill.position.x = 0;
+                        }
+                        break;
+                    }
+                }
+
+                if (hit || b.life <= 0) {
+                    bullets.splice(i, 1);
+                }
+            }
+        }
+
+        let prevTime = performance.now();
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const time = performance.now();
+            const delta = Math.min((time - prevTime) / 1000, 0.1);
+
+            frameCount++;
+            if (time - lastFpsUpdate >= 500) {
+                let currentFps = Math.round((frameCount * 1000) / (time - lastFpsUpdate));
+                document.getElementById('fps-hud').innerText = `FPS: ${currentFps}`;
+                frameCount = 0;
+                lastFpsUpdate = time;
+            }
+
+            let isLocked = document.pointerLockElement === document.getElementById('game-canvas');
+            if (isLocked) {
+                updatePhysics(delta);
+                updateBots();
+                updateBullets();
+            }
+
+            prevTime = time;
+            renderer.render(scene, camera);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+    </script>
+</body>
+</html>
