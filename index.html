@@ -197,10 +197,9 @@
             playerGroup.position.set(0, 0, 10);
             scene.add(playerGroup);
 
-            // Load Custom FBX Player Model (s.m.fbx)
+            // Load s.m.fbx correctly from the root repository directory
             const fbxLoader = new THREE.FBXLoader();
             fbxLoader.load('s.m.fbx', (object) => {
-                // Adjust scale if your model appears too big or tiny
                 object.scale.set(0.01, 0.01, 0.01);
                 object.position.set(0, 0, 0);
                 playerGroup.add(object);
@@ -208,7 +207,6 @@
                 console.log((xhr.loaded / xhr.total * 100) + '% loaded player model');
             }, (error) => {
                 console.warn('Could not load s.m.fbx, using fallback box representation.', error);
-                // Fallback shape if file fails to load locally
                 const fallbackMat = new THREE.MeshBasicMaterial({ color: 0x2979ff });
                 const fallbackMesh = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.8, 0.4), fallbackMat);
                 fallbackMesh.position.y = 0.9;
