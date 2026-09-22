@@ -1,0 +1,1521 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="tokyo" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>!LewisNZ | Full-Stack Software Engineer — Waikato, NZ</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts (Inter & JetBrains Mono) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    :root, [data-theme="tokyo"] {
+      --bg-main: #1a1b26;
+      --bg-card: #24283b;
+      --bg-card-hover: #2f354f;
+      --border-color: #3b4261;
+      --color-primary: #7aa2f7;
+      --color-primary-rgb: 122, 162, 247;
+      --color-secondary: #bb9af7;
+      --color-accent: #7dcfff;
+      --color-text: #c0caf5;
+      --color-text-muted: #9aa5ce;
+      --color-terminal-bg: #16161e;
+      --glow-color: rgba(122, 162, 247, 0.25);
+    }
+
+    [data-theme="matrix"] {
+      --bg-main: #0a0f0d;
+      --bg-card: #121e17;
+      --bg-card-hover: #1b2e23;
+      --border-color: #274e36;
+      --color-primary: #00ff66;
+      --color-primary-rgb: 0, 255, 102;
+      --color-secondary: #00cc88;
+      --color-accent: #33ffaa;
+      --color-text: #e0fbe8;
+      --color-text-muted: #73b88b;
+      --color-terminal-bg: #050a07;
+      --glow-color: rgba(0, 255, 102, 0.25);
+    }
+
+    [data-theme="cyber"] {
+      --bg-main: #0f051d;
+      --bg-card: #1c0d33;
+      --bg-card-hover: #2a164a;
+      --border-color: #481d70;
+      --color-primary: #ff007f;
+      --color-primary-rgb: 255, 0, 127;
+      --color-secondary: #00f0ff;
+      --color-accent: #ffe600;
+      --color-text: #f0e6ff;
+      --color-text-muted: #b193d6;
+      --color-terminal-bg: #090214;
+      --glow-color: rgba(255, 0, 127, 0.25);
+    }
+
+    [data-theme="minimal"] {
+      --bg-main: #09090b;
+      --bg-card: #18181b;
+      --bg-card-hover: #27272a;
+      --border-color: #3f3f46;
+      --color-primary: #3b82f6;
+      --color-primary-rgb: 59, 130, 246;
+      --color-secondary: #8b5cf6;
+      --color-accent: #06b6d4;
+      --color-text: #fafafa;
+      --color-text-muted: #a1a1aa;
+      --color-terminal-bg: #121215;
+      --glow-color: rgba(59, 130, 246, 0.25);
+    }
+
+    [data-theme="nord"] {
+      --bg-main: #2e3440;
+      --bg-card: #3b4252;
+      --bg-card-hover: #434c5e;
+      --border-color: #4c566a;
+      --color-primary: #88c0d0;
+      --color-primary-rgb: 136, 192, 208;
+      --color-secondary: #81a1c1;
+      --color-accent: #a3be8c;
+      --color-text: #eceff4;
+      --color-text-muted: #d8dee9;
+      --color-terminal-bg: #242933;
+      --glow-color: rgba(136, 192, 208, 0.25);
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--color-text);
+      font-family: 'Inter', sans-serif;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .bg-custom-main { background-color: var(--bg-main); }
+    .bg-custom-card { background-color: var(--bg-card); }
+    .bg-custom-card-hover:hover { background-color: var(--bg-card-hover); }
+    .bg-custom-terminal { background-color: var(--color-terminal-bg); }
+    .border-custom { border-color: var(--border-color); }
+    .text-custom-main { color: var(--color-text); }
+    .text-custom-muted { color: var(--color-text-muted); }
+    .text-custom-primary { color: var(--color-primary); }
+    .text-custom-secondary { color: var(--color-secondary); }
+    .text-custom-accent { color: var(--color-accent); }
+    .bg-custom-primary { background-color: var(--color-primary); }
+    .border-custom-primary { border-color: var(--color-primary); }
+    .shadow-custom-glow { box-shadow: 0 0 25px var(--glow-color); }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-main);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--color-primary);
+    }
+
+    /* Glitch Typography Effect */
+    .glitch-text {
+      position: relative;
+      display: inline-block;
+      background: linear-gradient(135deg, var(--color-primary), var(--color-secondary), var(--color-accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* Pulse & Aura Animation */
+    @keyframes subtleGlow {
+      0%, 100% { opacity: 0.4; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(1.03); }
+    }
+    .animate-aura {
+      animation: subtleGlow 6s infinite ease-in-out;
+    }
+
+    /* Blinking Cursor */
+    .typing-cursor::after {
+      content: '|';
+      animation: blink 1s infinite;
+      color: var(--color-primary);
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+  </style>
+</head>
+
+<body class="min-h-screen relative overflow-x-hidden selection:bg-indigo-500 selection:text-white">
+
+  <!-- Background Particle & Grid Canvas -->
+  <canvas id="bgCanvas" class="fixed top-0 left-0 w-full h-full pointer-events-none z-0 opacity-40"></canvas>
+
+  <!-- Top Navigation Header -->
+  <header class="sticky top-0 z-40 backdrop-blur-md bg-opacity-80 border-b border-custom bg-custom-main/80 transition-all duration-300">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Logo & NZ Badge -->
+      <a href="#" class="flex items-center gap-3 group">
+        <div class="w-9 h-9 rounded-lg bg-custom-primary/10 border border-custom-primary/30 flex items-center justify-center text-custom-primary font-mono font-bold text-lg group-hover:scale-105 transition-transform">
+          !
+        </div>
+        <div>
+          <span class="font-bold font-mono text-xl tracking-tight text-custom-main group-hover:text-custom-primary transition-colors">!LewisNZ</span>
+          <span class="hidden sm:inline-block ml-2 text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">
+            🇳🇿 Waikato
+          </span>
+        </div>
+      </a>
+
+      <!-- Desktop Nav Links -->
+      <nav class="hidden md:flex items-center space-x-6 text-sm font-medium">
+        <a href="#about" class="text-custom-muted hover:text-custom-primary transition-colors">About</a>
+        <a href="#skills" class="text-custom-muted hover:text-custom-primary transition-colors">Skills Matrix</a>
+        <a href="#projects" class="text-custom-muted hover:text-custom-primary transition-colors">Projects</a>
+        <a href="#timeline" class="text-custom-muted hover:text-custom-primary transition-colors">Journey</a>
+        <a href="#contact" class="text-custom-muted hover:text-custom-primary transition-colors">Contact</a>
+      </nav>
+
+      <!-- Right Controls: Live Time, CLI Toggle, Theme Switcher -->
+      <div class="flex items-center gap-3">
+        
+        <!-- Live NZ Time Pill -->
+        <div class="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-custom-card border border-custom text-xs font-mono text-custom-muted">
+          <i data-lucide="clock" class="w-3.5 h-3.5 text-custom-primary"></i>
+          <span id="nzClock">--:--:-- NZST</span>
+        </div>
+
+        <!-- Terminal CLI Toggle Button -->
+        <button onclick="toggleTerminal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-custom-primary/10 hover:bg-custom-primary/20 text-custom-primary border border-custom-primary/30 text-xs font-mono transition-all hover:scale-105 active:scale-95" title="Toggle Terminal (Ctrl + ~)">
+          <i data-lucide="terminal" class="w-4 h-4"></i>
+          <span class="hidden sm:inline">CLI</span>
+        </button>
+
+        <!-- Theme Switcher Selector -->
+        <div class="relative group">
+          <button id="themeDropdownBtn" onclick="toggleThemeDropdown()" class="p-2 rounded-lg bg-custom-card border border-custom text-custom-muted hover:text-custom-main transition-colors flex items-center gap-1">
+            <i data-lucide="palette" class="w-4 h-4"></i>
+            <i data-lucide="chevron-down" class="w-3 h-3"></i>
+          </button>
+          
+          <div id="themeDropdown" class="hidden absolute right-0 mt-2 w-44 rounded-xl bg-custom-card border border-custom shadow-xl p-2 z-50 flex flex-col gap-1 text-xs">
+            <button onclick="setTheme('tokyo')" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-custom-primary/10 text-left transition-colors">
+              <span class="w-3 h-3 rounded-full bg-[#7aa2f7]"></span> Tokyo Night
+            </button>
+            <button onclick="setTheme('matrix')" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-custom-primary/10 text-left transition-colors">
+              <span class="w-3 h-3 rounded-full bg-[#00ff66]"></span> Matrix Green
+            </button>
+            <button onclick="setTheme('cyber')" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-custom-primary/10 text-left transition-colors">
+              <span class="w-3 h-3 rounded-full bg-[#ff007f]"></span> Cyberpunk Neon
+            </button>
+            <button onclick="setTheme('minimal')" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-custom-primary/10 text-left transition-colors">
+              <span class="w-3 h-3 rounded-full bg-[#3b82f6]"></span> Minimal Dark
+            </button>
+            <button onclick="setTheme('nord')" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-custom-primary/10 text-left transition-colors">
+              <span class="w-3 h-3 rounded-full bg-[#88c0d0]"></span> Nord Frost
+            </button>
+          </div>
+        </div>
+
+        <!-- Mobile Menu Toggle -->
+        <button onclick="toggleMobileNav()" class="md:hidden p-2 rounded-lg bg-custom-card border border-custom text-custom-muted">
+          <i data-lucide="menu" class="w-5 h-5"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Nav Menu -->
+    <div id="mobileNav" class="hidden md:hidden border-b border-custom bg-custom-card px-4 py-4 space-y-3 font-mono text-sm">
+      <a href="#about" onclick="toggleMobileNav()" class="block text-custom-muted hover:text-custom-primary"># About</a>
+      <a href="#skills" onclick="toggleMobileNav()" class="block text-custom-muted hover:text-custom-primary"># Skills Matrix</a>
+      <a href="#projects" onclick="toggleMobileNav()" class="block text-custom-muted hover:text-custom-primary"># Projects</a>
+      <a href="#timeline" onclick="toggleMobileNav()" class="block text-custom-muted hover:text-custom-primary"># Journey</a>
+      <a href="#contact" onclick="toggleMobileNav()" class="block text-custom-muted hover:text-custom-primary"># Contact</a>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section id="about" class="relative z-10 pt-16 pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-12">
+    
+    <!-- Hero Left Column -->
+    <div class="flex-1 space-y-6 text-center lg:text-left">
+      
+      <!-- Availability Badge -->
+      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono">
+        <span class="relative flex h-2 w-2">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+        </span>
+        Available for Contract & Senior Architect Roles
+      </div>
+
+      <!-- Main Handle Title -->
+      <h1 class="text-5xl sm:text-6xl md:text-7xl font-extrabold font-mono tracking-tight leading-none">
+        <span class="glitch-text">!LewisNZ</span>
+      </h1>
+
+      <!-- Dynamic Typewriter Subtitle -->
+      <div class="text-xl sm:text-2xl font-mono text-custom-primary h-8 flex items-center justify-center lg:justify-start">
+        <span id="typewriter" class="typing-cursor font-semibold"></span>
+      </div>
+
+      <!-- Bio Pitch -->
+      <p class="text-base sm:text-lg text-custom-muted max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+        Full-Stack Software Engineer & Distributed Systems Architect based in <span class="text-custom-main font-semibold">Waikato, New Zealand</span>. Crafting ultra-scalable cloud APIs, responsive web interfaces, and high-performance developer tooling with modern tech stacks.
+      </p>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-2">
+        <a href="#projects" class="px-6 py-3 rounded-xl bg-custom-primary text-slate-950 font-bold font-mono text-sm hover:opacity-90 hover:scale-105 transition-all shadow-custom-glow flex items-center gap-2">
+          <i data-lucide="layers" class="w-4 h-4"></i> Explore Work
+        </a>
+        
+        <button onclick="toggleTerminal()" class="px-6 py-3 rounded-xl bg-custom-card border border-custom text-custom-main font-bold font-mono text-sm hover:border-custom-primary hover:text-custom-primary transition-all flex items-center gap-2">
+          <i data-lucide="terminal" class="w-4 h-4"></i> Interactive CLI
+        </button>
+
+        <a href="#contact" class="px-6 py-3 rounded-xl border border-custom text-custom-muted font-bold font-mono text-sm hover:text-custom-main hover:border-custom-primary transition-all">
+          Get in Touch
+        </a>
+      </div>
+
+      <!-- Quick Tech Chips -->
+      <div class="pt-4 flex flex-wrap items-center justify-center lg:justify-start gap-2 text-xs font-mono text-custom-muted">
+        <span class="px-2.5 py-1 rounded-md bg-custom-card border border-custom">TypeScript</span>
+        <span class="px-2.5 py-1 rounded-md bg-custom-card border border-custom">React / Next.js</span>
+        <span class="px-2.5 py-1 rounded-md bg-custom-card border border-custom">Go</span>
+        <span class="px-2.5 py-1 rounded-md bg-custom-card border border-custom">Rust</span>
+        <span class="px-2.5 py-1 rounded-md bg-custom-card border border-custom">GraphQL</span>
+        <span class="px-2.5 py-1 rounded-md bg-custom-card border border-custom">AWS / Cloud Native</span>
+      </div>
+    </div>
+
+    <!-- Hero Right Column: Live Code Telemetry Card -->
+    <div class="w-full lg:w-[480px] relative">
+      <!-- Ambient Glow Behind Card -->
+      <div class="absolute -inset-1 bg-gradient-to-r from-custom-primary to-custom-secondary rounded-2xl blur-xl opacity-20 animate-aura"></div>
+      
+      <!-- Code Editor Window -->
+      <div class="relative rounded-2xl bg-custom-terminal border border-custom overflow-hidden shadow-2xl font-mono text-xs">
+        
+        <!-- Header Controls -->
+        <div class="px-4 py-3 bg-custom-card/60 border-b border-custom flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full bg-rose-500/80 inline-block"></span>
+            <span class="w-3 h-3 rounded-full bg-amber-500/80 inline-block"></span>
+            <span class="w-3 h-3 rounded-full bg-emerald-500/80 inline-block"></span>
+            <span class="ml-2 text-custom-muted font-semibold">lewis_telemetry.ts</span>
+          </div>
+          <span class="text-[10px] px-2 py-0.5 rounded bg-custom-primary/10 text-custom-primary border border-custom-primary/20">LIVE</span>
+        </div>
+
+        <!-- Editor Content Body -->
+        <div class="p-5 space-y-3 overflow-x-auto text-custom-muted leading-relaxed">
+          <div><span class="text-custom-secondary">import</span> { Developer } <span class="text-custom-secondary">from</span> <span class="text-emerald-400">'@lewisnz/core'</span>;</div>
+          <div></div>
+          <div><span class="text-custom-secondary">const</span> <span class="text-custom-primary">lewis</span>: <span class="text-amber-300">Developer</span> = <span class="text-custom-secondary">new</span> <span class="text-amber-300">Developer</span>({</div>
+          <div class="pl-4"><span class="text-custom-accent">handle</span>: <span class="text-emerald-400">'!LewisNZ'</span>,</div>
+          <div class="pl-4"><span class="text-custom-accent">location</span>: <span class="text-emerald-400">'Waikato, New Zealand 🇳🇿'</span>,</div>
+          <div class="pl-4"><span class="text-custom-accent">timezone</span>: <span class="text-emerald-400">'Pacific/Auckland'</span>,</div>
+          <div class="pl-4"><span class="text-custom-accent">stack</span>: [<span class="text-emerald-400">'TypeScript'</span>, <span class="text-emerald-400">'React'</span>, <span class="text-emerald-400">'Go'</span>, <span class="text-emerald-400">'Rust'</span>],</div>
+          <div class="pl-4"><span class="text-custom-accent">status</span>: <span class="text-emerald-400">'Building next-gen systems'</span></div>
+          <div>});</div>
+          <div></div>
+          <div class="text-custom-muted/60">// Execute pulse status check</div>
+          <div><span class="text-custom-secondary">await</span> lewis.<span class="text-custom-accent">pingLatency</span>({ region: <span class="text-emerald-400">'ap-southeast-2'</span> });</div>
+          
+          <!-- System Status Footer Widget inside Code Editor -->
+          <div class="mt-4 pt-3 border-t border-custom/60 flex items-center justify-between text-[11px]">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span class="text-custom-main">System: Optimal</span>
+            </div>
+            <div class="text-custom-muted">Ping: <span class="text-emerald-400 font-bold">12ms</span> (NZ-East)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tech Stack & Skills Matrix -->
+  <section id="skills" class="relative z-10 py-20 border-t border-custom bg-custom-card/30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Section Header -->
+      <div class="text-center max-w-3xl mx-auto space-y-3 mb-12">
+        <h2 class="text-3xl sm:text-4xl font-extrabold font-mono tracking-tight text-custom-main">
+          &lt;<span class="text-custom-primary">Tech Stack</span> & Matrix/&gt;
+        </h2>
+        <p class="text-custom-muted text-sm sm:text-base">
+          Battle-tested engineering competencies across modern web architectures, edge computing, distributed microservices, and AI integrations.
+        </p>
+
+        <!-- Category Filters -->
+        <div class="flex flex-wrap items-center justify-center gap-2 pt-4" id="skillFilters">
+          <button onclick="filterSkills('all')" class="skill-tab-btn active px-4 py-1.5 rounded-lg text-xs font-mono border border-custom bg-custom-primary text-slate-950 font-bold transition-all">All</button>
+          <button onclick="filterSkills('frontend')" class="skill-tab-btn px-4 py-1.5 rounded-lg text-xs font-mono border border-custom bg-custom-card hover:border-custom-primary text-custom-muted transition-all">Frontend</button>
+          <button onclick="filterSkills('backend')" class="skill-tab-btn px-4 py-1.5 rounded-lg text-xs font-mono border border-custom bg-custom-card hover:border-custom-primary text-custom-muted transition-all">Backend</button>
+          <button onclick="filterSkills('cloud')" class="skill-tab-btn px-4 py-1.5 rounded-lg text-xs font-mono border border-custom bg-custom-card hover:border-custom-primary text-custom-muted transition-all">Cloud & DevOps</button>
+          <button onclick="filterSkills('database')" class="skill-tab-btn px-4 py-1.5 rounded-lg text-xs font-mono border border-custom bg-custom-card hover:border-custom-primary text-custom-muted transition-all">Databases</button>
+          <button onclick="filterSkills('tools')" class="skill-tab-btn px-4 py-1.5 rounded-lg text-xs font-mono border border-custom bg-custom-card hover:border-custom-primary text-custom-muted transition-all">Tools & AI</button>
+        </div>
+      </div>
+
+      <!-- Skills Cards Grid -->
+      <div id="skillsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- JS populated skill cards -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Projects Showcase Section -->
+  <section id="projects" class="relative z-10 py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Section Header -->
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+        <div class="space-y-3 max-w-2xl">
+          <h2 class="text-3xl sm:text-4xl font-extrabold font-mono tracking-tight text-custom-main">
+            &lt;<span class="text-custom-primary">Featured Work</span>/&gt;
+          </h2>
+          <p class="text-custom-muted text-sm sm:text-base">
+            Handpicked applications, high-throughput cloud infrastructure, and open-source tooling built by !LewisNZ.
+          </p>
+        </div>
+
+        <!-- Search & Filter Controls -->
+        <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+          <!-- Search Bar -->
+          <div class="relative flex-1 sm:w-64">
+            <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-custom-muted"></i>
+            <input type="text" id="projectSearch" oninput="renderProjects()" placeholder="Search project or tech..." class="w-full pl-9 pr-4 py-2 rounded-xl bg-custom-card border border-custom text-xs font-mono text-custom-main placeholder:text-custom-muted focus:outline-none focus:border-custom-primary transition-all">
+          </div>
+
+          <!-- Category Select Filter -->
+          <select id="projectCategoryFilter" onchange="renderProjects()" class="px-3 py-2 rounded-xl bg-custom-card border border-custom text-xs font-mono text-custom-muted focus:outline-none focus:border-custom-primary transition-all">
+            <option value="all">All Categories</option>
+            <option value="web">Web Apps</option>
+            <option value="ai">AI / ML</option>
+            <option value="systems">Systems & Cloud</option>
+            <option value="opensource">Open Source</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Projects Grid -->
+      <div id="projectsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- Dynamic project cards rendered via JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Career / Journey Timeline Section -->
+  <section id="timeline" class="relative z-10 py-20 border-t border-custom bg-custom-card/20">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Header -->
+      <div class="text-center max-w-3xl mx-auto space-y-3 mb-16">
+        <h2 class="text-3xl sm:text-4xl font-extrabold font-mono tracking-tight text-custom-main">
+          &lt;<span class="text-custom-primary">Developer Journey</span>/&gt;
+        </h2>
+        <p class="text-custom-muted text-sm sm:text-base">
+          Key milestones, career experience, and community impact across New Zealand and global tech ecosystems.
+        </p>
+      </div>
+
+      <!-- Timeline Tree Container -->
+      <div class="relative border-l-2 border-custom ml-4 sm:ml-32 space-y-12">
+        
+        <!-- Item 1 -->
+        <div class="relative pl-8 sm:pl-10 group">
+          <div class="absolute -left-[9px] top-1.5 w-4 h-4 rounded-full bg-custom-primary border-4 border-custom-main shadow-custom-glow"></div>
+          
+          <div class="hidden sm:block absolute -left-36 top-1 text-right w-24 font-mono text-xs text-custom-primary font-bold">
+            2026 - Present
+          </div>
+
+          <div class="p-6 rounded-2xl bg-custom-card border border-custom group-hover:border-custom-primary/50 transition-all space-y-3">
+            <div class="sm:hidden font-mono text-xs text-custom-primary font-bold">2026 - Present</div>
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <h3 class="text-lg font-bold font-mono text-custom-main">Lead Full-Stack Architect @ Waikato Tech Labs</h3>
+              <span class="px-2.5 py-0.5 rounded-full bg-custom-primary/10 text-custom-primary border border-custom-primary/20 text-xs font-mono">Hamilton, NZ</span>
+            </div>
+            <p class="text-sm text-custom-muted leading-relaxed">
+              Spearheading distributed cloud architectures, real-time telemetry systems, and local AI integrations for enterprise clients in New Zealand. Architected microservice pipelines handling over 10M daily events with 99.99% uptime.
+            </p>
+            <div class="flex flex-wrap gap-2 text-xs font-mono text-custom-muted pt-2">
+              <span class="px-2 py-0.5 rounded bg-custom-main border border-custom">Go</span>
+              <span class="px-2 py-0.5 rounded bg-custom-main border border-custom">TypeScript</span>
+              <span class="px-2 py-0.5 rounded bg-custom-main border border-custom">AWS</span>
+              <span class="px-2 py-0.5 rounded bg-custom-main border border-custom">Kubernetes</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Item 2 -->
+        <div class="relative pl-8 sm:pl-10 group">
+          <div class="absolute -left-[9px] top-1.5 w-4 h-4 rounded-full bg-custom-secondary border-4 border-custom-main"></div>
+          
+          <div class="hidden sm:block absolute -left-36 top-1 text-right w-24 font-mono text-xs text-custom-secondary font-bold">
+            2024 - 2026
+          </div>
+
+          <div class="p-6 rounded-2xl bg-custom-card border border-custom group-hover:border-custom-primary/50 transition-all space-y-3">
+            <div class="sm:hidden font-mono text-xs text-custom-secondary font-bold">2024 - 2026</div>
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <h3 class="text-lg font-bold font-mono text-custom-main">Senior Software Engineer @ Pacific Cloud Systems</h3>
+              <span class="px-2.5 py-0.5 rounded-full bg-custom-card border border-custom text-xs font-mono text-custom-muted">Auckland / Remote</span>
+            </div>
+            <p class="text-sm text-custom-muted leading-relaxed">
+              Engineered high-throughput GraphQL edge APIs, redesigned primary client portals with Next.js & WebSockets, and mentored junior developers across agile sprint teams.
+            </p>
+            <div class="flex flex-wrap gap-2 text-xs font-mono text-custom-muted pt-2">
+              <span class="px-2 py-0.5 rounded bg-custom-main border border-custom">Next.js</span>
+              <span class="px-2 py-0.5 rounded bg-custom-main border border-custom">Rust</span>
+              <span class="px-2 py-0.5 rounded bg-custom-main border border-custom">GraphQL</span>
+              <span class="px-2 py-0.5 rounded bg-custom-main border border-custom">PostgreSQL</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Item 3 -->
+        <div class="relative pl-8 sm:pl-10 group">
+          <div class="absolute -left-[9px] top-1.5 w-4 h-4 rounded-full bg-custom-accent border-4 border-custom-main"></div>
+          
+          <div class="hidden sm:block absolute -left-36 top-1 text-right w-24 font-mono text-xs text-custom-accent font-bold">
+            2022 - 2024
+          </div>
+
+          <div class="p-6 rounded-2xl bg-custom-card border border-custom group-hover:border-custom-primary/50 transition-all space-y-3">
+            <div class="sm:hidden font-mono text-xs text-custom-accent font-bold">2022 - 2024</div>
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <h3 class="text-lg font-bold font-mono text-custom-main">Full-Stack Engineer @ Aotearoa Digital</h3>
+              <span class="px-2.5 py-0.5 rounded-full bg-custom-card border border-custom text-xs font-mono text-custom-muted">Waikato, NZ</span>
+            </div>
+            <p class="text-sm text-custom-muted leading-relaxed">
+              Built customizable dashboard systems, e-commerce solutions, and spatial mapping features for New Zealand businesses and regional platforms.
+            </p>
+            <div class="flex flex-wrap gap-2 text-xs font-mono text-custom-muted pt-2">
+              <span class="px-2 py-0.5 rounded bg-custom-main border border-custom">React</span>
+              <span class="px-2 py-0.5 rounded bg-custom-main border border-custom">Node.js</span>
+              <span class="px-2 py-0.5 rounded bg-custom-main border border-custom">Tailwind CSS</span>
+              <span class="px-2 py-0.5 rounded bg-custom-main border border-custom">Redis</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Item 4 -->
+        <div class="relative pl-8 sm:pl-10 group">
+          <div class="absolute -left-[9px] top-1.5 w-4 h-4 rounded-full bg-slate-500 border-4 border-custom-main"></div>
+          
+          <div class="hidden sm:block absolute -left-36 top-1 text-right w-24 font-mono text-xs text-custom-muted font-bold">
+            2018 - 2022
+          </div>
+
+          <div class="p-6 rounded-2xl bg-custom-card border border-custom group-hover:border-custom-primary/50 transition-all space-y-3">
+            <div class="sm:hidden font-mono text-xs text-custom-muted font-bold">2018 - 2022</div>
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <h3 class="text-lg font-bold font-mono text-custom-main">B.S. in Computer Science @ University of Waikato</h3>
+              <span class="px-2.5 py-0.5 rounded-full bg-custom-card border border-custom text-xs font-mono text-custom-muted">Hamilton, NZ</span>
+            </div>
+            <p class="text-sm text-custom-muted leading-relaxed">
+              Graduated with First Class Honors. Specialization in Algorithms, Parallel Processing, and Computer Networks. Active contributor to open-source developer tooling.
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact & Social Hub Section -->
+  <section id="contact" class="relative z-10 py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+        
+        <!-- Left: Quick Info & Direct Widgets -->
+        <div class="space-y-6">
+          <div class="space-y-3">
+            <h2 class="text-3xl sm:text-4xl font-extrabold font-mono tracking-tight text-custom-main">
+              &lt;<span class="text-custom-primary">Let's Connect</span>/&gt;
+            </h2>
+            <p class="text-custom-muted text-base leading-relaxed">
+              Have a high-impact project, infrastructure challenge, or senior engineering role? Reach out directly or send a message below.
+            </p>
+          </div>
+
+          <!-- Direct Copy Cards -->
+          <div class="space-y-3 pt-2">
+            
+            <!-- Email Copy Pill -->
+            <div class="p-4 rounded-xl bg-custom-card border border-custom flex items-center justify-between hover:border-custom-primary/50 transition-all group">
+              <div class="flex items-center gap-3">
+                <div class="p-2 rounded-lg bg-custom-primary/10 text-custom-primary">
+                  <i data-lucide="mail" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <div class="text-xs font-mono text-custom-muted">Direct Email</div>
+                  <div class="font-mono font-bold text-sm text-custom-main">lewis@lewisnz.dev</div>
+                </div>
+              </div>
+              <button onclick="copyToClipboard('lewis@lewisnz.dev', 'Email address copied!')" class="px-3 py-1.5 rounded-lg bg-custom-main border border-custom text-xs font-mono text-custom-muted group-hover:text-custom-primary group-hover:border-custom-primary transition-all">
+                Copy
+              </button>
+            </div>
+
+            <!-- Discord Tag Copy Pill -->
+            <div class="p-4 rounded-xl bg-custom-card border border-custom flex items-center justify-between hover:border-custom-primary/50 transition-all group">
+              <div class="flex items-center gap-3">
+                <div class="p-2 rounded-lg bg-custom-primary/10 text-custom-primary">
+                  <i data-lucide="message-square" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <div class="text-xs font-mono text-custom-muted">Discord Handle</div>
+                  <div class="font-mono font-bold text-sm text-custom-main">!LewisNZ#0001</div>
+                </div>
+              </div>
+              <button onclick="copyToClipboard('!LewisNZ#0001', 'Discord tag copied!')" class="px-3 py-1.5 rounded-lg bg-custom-main border border-custom text-xs font-mono text-custom-muted group-hover:text-custom-primary group-hover:border-custom-primary transition-all">
+                Copy
+              </button>
+            </div>
+
+            <!-- Location Badge -->
+            <div class="p-4 rounded-xl bg-custom-card border border-custom flex items-center gap-3">
+              <div class="p-2 rounded-lg bg-emerald-500/10 text-emerald-400">
+                <i data-lucide="map-pin" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <div class="text-xs font-mono text-custom-muted">Base Location</div>
+                <div class="font-mono font-bold text-sm text-custom-main">Waikato Region, New Zealand 🇳🇿</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Social Links Grid -->
+          <div class="pt-4">
+            <div class="text-xs font-mono text-custom-muted mb-3"># Social Ecosystem</div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <a href="https://github.com" target="_blank" class="p-3 rounded-xl bg-custom-card border border-custom hover:border-custom-primary hover:text-custom-primary text-custom-muted text-center font-mono text-xs transition-all flex flex-col items-center gap-1.5">
+                <i data-lucide="github" class="w-5 h-5"></i>
+                GitHub
+              </a>
+              <a href="https://linkedin.com" target="_blank" class="p-3 rounded-xl bg-custom-card border border-custom hover:border-custom-primary hover:text-custom-primary text-custom-muted text-center font-mono text-xs transition-all flex flex-col items-center gap-1.5">
+                <i data-lucide="linkedin" class="w-5 h-5"></i>
+                LinkedIn
+              </a>
+              <a href="https://twitter.com" target="_blank" class="p-3 rounded-xl bg-custom-card border border-custom hover:border-custom-primary hover:text-custom-primary text-custom-muted text-center font-mono text-xs transition-all flex flex-col items-center gap-1.5">
+                <i data-lucide="twitter" class="w-5 h-5"></i>
+                X / Twitter
+              </a>
+              <a href="https://discord.com" target="_blank" class="p-3 rounded-xl bg-custom-card border border-custom hover:border-custom-primary hover:text-custom-primary text-custom-muted text-center font-mono text-xs transition-all flex flex-col items-center gap-1.5">
+                <i data-lucide="disc" class="w-5 h-5"></i>
+                Discord
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Interactive Contact Form -->
+        <div class="p-6 sm:p-8 rounded-2xl bg-custom-card border border-custom relative overflow-hidden shadow-xl space-y-5">
+          <h3 class="text-xl font-bold font-mono text-custom-main flex items-center gap-2">
+            <i data-lucide="send" class="w-5 h-5 text-custom-primary"></i> Dispatch Message
+          </h3>
+
+          <form id="contactForm" onsubmit="handleContactSubmit(event)" class="space-y-4 text-xs font-mono">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="space-y-1.5">
+                <label class="text-custom-muted">Your Name *</label>
+                <input type="text" id="formName" required placeholder="e.g. Sarah Connor" class="w-full px-3.5 py-2.5 rounded-xl bg-custom-main border border-custom text-custom-main placeholder:text-custom-muted/50 focus:outline-none focus:border-custom-primary transition-all">
+              </div>
+
+              <div class="space-y-1.5">
+                <label class="text-custom-muted">Your Email *</label>
+                <input type="email" id="formEmail" required placeholder="e.g. sarah@cyberdyne.io" class="w-full px-3.5 py-2.5 rounded-xl bg-custom-main border border-custom text-custom-main placeholder:text-custom-muted/50 focus:outline-none focus:border-custom-primary transition-all">
+              </div>
+            </div>
+
+            <div class="space-y-1.5">
+              <label class="text-custom-muted">Subject / Scope *</label>
+              <input type="text" id="formSubject" required placeholder="e.g. Distributed System Architecture Inquiry" class="w-full px-3.5 py-2.5 rounded-xl bg-custom-main border border-custom text-custom-main placeholder:text-custom-muted/50 focus:outline-none focus:border-custom-primary transition-all">
+            </div>
+
+            <div class="space-y-1.5">
+              <label class="text-custom-muted">Message Details *</label>
+              <textarea id="formMessage" rows="5" required placeholder="Describe your project, roadmap, or engineering inquiry..." class="w-full px-3.5 py-2.5 rounded-xl bg-custom-main border border-custom text-custom-main placeholder:text-custom-muted/50 focus:outline-none focus:border-custom-primary transition-all resize-none"></textarea>
+            </div>
+
+            <button type="submit" class="w-full py-3 rounded-xl bg-custom-primary text-slate-950 font-bold font-mono text-sm hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-custom-glow">
+              <i data-lucide="arrow-right" class="w-4 h-4"></i> Transmit Payload
+            </button>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="border-t border-custom py-8 text-center text-xs font-mono text-custom-muted">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div>
+        &copy; 2026 <span class="text-custom-main font-bold">!LewisNZ</span>. Built with Precision in Waikato, NZ.
+      </div>
+      <div class="flex items-center gap-4">
+        <span>Press <kbd class="px-1.5 py-0.5 rounded bg-custom-card border border-custom text-[10px]">Ctrl + ~</kbd> for CLI</span>
+        <button onclick="scrollToTop()" class="hover:text-custom-primary transition-colors flex items-center gap-1">
+          Back to Top <i data-lucide="arrow-up" class="w-3.5 h-3.5"></i>
+        </button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Embedded Terminal / CLI Drawer Drawer Overlay -->
+  <div id="terminalDrawer" class="fixed bottom-0 left-0 right-0 z-50 transform translate-y-full transition-transform duration-300 ease-in-out">
+    
+    <!-- Drawer Handle Header -->
+    <div class="max-w-5xl mx-auto bg-custom-terminal border-t border-x border-custom rounded-t-2xl shadow-2xl overflow-hidden">
+      
+      <div class="px-4 py-3 bg-custom-card border-b border-custom flex items-center justify-between font-mono text-xs">
+        <div class="flex items-center gap-2">
+          <button onclick="toggleTerminal()" class="w-3 h-3 rounded-full bg-rose-500 hover:opacity-80 transition-opacity"></button>
+          <button onclick="clearTerminal()" class="w-3 h-3 rounded-full bg-amber-500 hover:opacity-80 transition-opacity" title="Clear screen"></button>
+          <button onclick="toggleTerminal()" class="w-3 h-3 rounded-full bg-emerald-500 hover:opacity-80 transition-opacity"></button>
+          <span class="ml-2 font-bold text-custom-main">!LewisNZ zsh v2.4.0 (Waikato-Node)</span>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <div class="hidden sm:flex gap-1">
+            <button onclick="execCmd('help')" class="px-2 py-0.5 rounded bg-custom-main border border-custom text-[10px] text-custom-muted hover:text-custom-primary">help</button>
+            <button onclick="execCmd('neofetch')" class="px-2 py-0.5 rounded bg-custom-main border border-custom text-[10px] text-custom-muted hover:text-custom-primary">neofetch</button>
+            <button onclick="execCmd('skills')" class="px-2 py-0.5 rounded bg-custom-main border border-custom text-[10px] text-custom-muted hover:text-custom-primary">skills</button>
+            <button onclick="execCmd('projects')" class="px-2 py-0.5 rounded bg-custom-main border border-custom text-[10px] text-custom-muted hover:text-custom-primary">projects</button>
+          </div>
+          <button onclick="toggleTerminal()" class="text-custom-muted hover:text-custom-main">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Terminal Output Canvas / Body -->
+      <div id="terminalBody" class="p-4 h-80 overflow-y-auto font-mono text-xs space-y-2 leading-relaxed text-custom-main">
+        <div class="text-custom-muted">Welcome to !LewisNZ interactive terminal shell.</div>
+        <div class="text-custom-muted">Type <span class="text-custom-primary font-bold">help</span> to list available commands. Tab key autocompletes.</div>
+      </div>
+
+      <!-- Command Input Bar -->
+      <div class="p-3 bg-custom-main border-t border-custom flex items-center gap-2 font-mono text-xs">
+        <span class="text-custom-primary font-bold">lewis@waikato:~#</span>
+        <input type="text" id="terminalInput" onkeydown="handleTerminalKey(event)" autocomplete="off" placeholder="Type a command..." class="flex-1 bg-transparent text-custom-main focus:outline-none placeholder:text-custom-muted/40">
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Project Details Modal Overlay -->
+  <div id="projectModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="w-full max-w-3xl rounded-2xl bg-custom-card border border-custom shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      
+      <!-- Modal Header -->
+      <div class="p-5 border-b border-custom flex items-center justify-between">
+        <div>
+          <span id="modalCategory" class="text-[10px] font-mono px-2 py-0.5 rounded bg-custom-primary/10 text-custom-primary border border-custom-primary/20 uppercase tracking-wider"></span>
+          <h3 id="modalTitle" class="text-xl font-bold font-mono text-custom-main mt-1"></h3>
+        </div>
+        <button onclick="closeProjectModal()" class="p-2 rounded-lg bg-custom-main border border-custom text-custom-muted hover:text-custom-main">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 overflow-y-auto space-y-6 text-xs font-mono">
+        
+        <!-- Tab Selectors inside Modal -->
+        <div class="flex gap-2 border-b border-custom pb-3">
+          <button onclick="switchModalTab('overview')" id="tabBtn-overview" class="px-3 py-1.5 rounded-lg bg-custom-primary text-slate-950 font-bold">Overview</button>
+          <button onclick="switchModalTab('architecture')" id="tabBtn-architecture" class="px-3 py-1.5 rounded-lg bg-custom-main text-custom-muted border border-custom">Architecture</button>
+          <button onclick="switchModalTab('preview')" id="tabBtn-preview" class="px-3 py-1.5 rounded-lg bg-custom-main text-custom-muted border border-custom">Live Interactive Simulator</button>
+        </div>
+
+        <!-- Tab 1: Overview -->
+        <div id="modalTab-overview" class="space-y-4">
+          <p id="modalDescription" class="text-custom-muted text-sm leading-relaxed"></p>
+          
+          <div class="space-y-2">
+            <div class="text-custom-main font-bold">Key Architectural Features:</div>
+            <ul id="modalFeatures" class="list-disc list-inside space-y-1 text-custom-muted"></ul>
+          </div>
+
+          <div class="space-y-2">
+            <div class="text-custom-main font-bold">Technologies Used:</div>
+            <div id="modalTech" class="flex flex-wrap gap-2"></div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Architecture ASCII / Diagram -->
+        <div id="modalTab-architecture" class="hidden space-y-3">
+          <div class="text-custom-main font-bold">Distributed System Flow:</div>
+          <pre id="modalArchitectureDiagram" class="p-4 rounded-xl bg-custom-terminal border border-custom text-custom-accent text-[11px] overflow-x-auto leading-tight"></pre>
+        </div>
+
+        <!-- Tab 3: Interactive Preview Simulator -->
+        <div id="modalTab-preview" class="hidden space-y-3">
+          <div class="p-4 rounded-xl bg-custom-terminal border border-custom space-y-3">
+            <div class="flex items-center justify-between text-custom-muted">
+              <span>Simulated Endpoint Response</span>
+              <span id="simLatency" class="text-emerald-400 font-bold">-- ms</span>
+            </div>
+            <button onclick="runProjectSimulation()" class="w-full py-2 rounded-lg bg-custom-primary text-slate-950 font-bold">
+              ⚡ Execute Test Pipeline Request
+            </button>
+            <pre id="simOutput" class="p-3 rounded-lg bg-custom-main text-custom-primary text-[11px] overflow-x-auto">Click button above to simulate API traffic payload...</pre>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 bg-custom-main border-t border-custom flex items-center justify-between">
+        <div class="text-custom-muted font-mono text-[11px]" id="modalMetrics"></div>
+        <div class="flex items-center gap-3">
+          <a id="modalGithub" href="#" target="_blank" class="px-4 py-2 rounded-xl bg-custom-card border border-custom text-custom-main font-mono hover:border-custom-primary transition-all flex items-center gap-1.5">
+            <i data-lucide="github" class="w-4 h-4"></i> Repository
+          </a>
+          <a id="modalDemo" href="#" target="_blank" class="px-4 py-2 rounded-xl bg-custom-primary text-slate-950 font-bold font-mono hover:opacity-90 transition-all flex items-center gap-1.5">
+            <i data-lucide="external-link" class="w-4 h-4"></i> Live Demo
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Toast Notification Overlay -->
+  <div id="toastContainer" class="fixed top-20 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <script>
+    /* ==========================================
+       1. DATA STRUCTURES & DATA PRESETS
+       ========================================== */
+    const SKILLS_DATA = [
+      { name: "TypeScript / JavaScript", category: "frontend", level: "Expert", pct: 98, exp: "6+ Yrs", projects: 35, icon: "code" },
+      { name: "React & Next.js", category: "frontend", level: "Expert", pct: 95, exp: "5+ Yrs", projects: 28, icon: "layout" },
+      { name: "Tailwind CSS & UI/UX", category: "frontend", level: "Expert", pct: 96, exp: "5+ Yrs", projects: 40, icon: "palette" },
+      { name: "Go (Golang)", category: "backend", level: "Advanced", pct: 90, exp: "4+ Yrs", projects: 16, icon: "server" },
+      { name: "Node.js & Express", category: "backend", level: "Expert", pct: 94, exp: "6+ Yrs", projects: 30, icon: "cpu" },
+      { name: "Rust", category: "backend", level: "Proficient", pct: 82, exp: "2+ Yrs", projects: 9, icon: "shield" },
+      { name: "GraphQL & WebSockets", category: "backend", level: "Advanced", pct: 88, exp: "4+ Yrs", projects: 14, icon: "zap" },
+      { name: "AWS & Edge Cloud", category: "cloud", level: "Advanced", pct: 88, exp: "4+ Yrs", projects: 20, icon: "cloud" },
+      { name: "Docker & Kubernetes", category: "cloud", level: "Advanced", pct: 86, exp: "3+ Yrs", projects: 18, icon: "box" },
+      { name: "CI/CD Pipelines", category: "cloud", level: "Advanced", pct: 90, exp: "5+ Yrs", projects: 25, icon: "git-branch" },
+      { name: "PostgreSQL & PostGIS", category: "database", level: "Expert", pct: 92, exp: "5+ Yrs", projects: 22, icon: "database" },
+      { name: "Redis & Caching", category: "database", level: "Advanced", pct: 88, exp: "4+ Yrs", projects: 19, icon: "layers" },
+      { name: "MongoDB & Vector DBs", category: "database", level: "Advanced", pct: 85, exp: "3+ Yrs", projects: 12, icon: "file-text" },
+      { name: "OpenAI & Vector LLMs", category: "tools", level: "Advanced", pct: 87, exp: "2+ Yrs", projects: 11, icon: "bot" },
+      { name: "Git / GitHub Actions", category: "tools", level: "Expert", pct: 98, exp: "6+ Yrs", projects: 45, icon: "git-commit" }
+    ];
+
+    const PROJECTS_DATA = [
+      {
+        id: "aotearoa-mesh",
+        title: "Aotearoa Cloud Mesh",
+        category: "systems",
+        catLabel: "Systems & Cloud",
+        shortDesc: "High-performance edge router and multi-region latency optimizer tailored for NZ & South Pacific edge nodes.",
+        fullDesc: "Aotearoa Cloud Mesh is a custom-built distributed edge gateway written in Go and WebAssembly. It dynamically routes regional internet traffic across optimal edge servers, reducing sub-second packet delays and prioritizing bandwidth for cloud apps.",
+        tags: ["Go", "Rust", "WebAssembly", "Docker", "gRPC"],
+        stars: "1.4k",
+        uptime: "99.99%",
+        github: "https://github.com/LewisNZ",
+        demo: "https://lewisnz.dev",
+        features: [
+          "Adaptive routing algorithms reducing Pacific transit ping by ~18ms",
+          "Zero-downtime TLS certificate auto-rotation engine",
+          "Built-in eBPF packet inspection for DDoS defense"
+        ],
+        diagram: `[ Client Request ] --> [ NZ-Edge Node ] --> [ Mesh Route Engine ]
+                              |
+                              +--> [ AWS Sydney Edge ] (Primary)
+                              +--> [ AWS Auckland Node ] (Fallback)`
+      },
+      {
+        id: "pulseui-studio",
+        title: "PulseUI Studio",
+        category: "web",
+        catLabel: "Web Apps",
+        shortDesc: "Next-gen design system and component workbench with live real-time collaborative preview.",
+        fullDesc: "PulseUI Studio simplifies UI/UX development with interactive component sandboxing, instant code exports, and WebSocket powered co-editing sessions for remote teams.",
+        tags: ["React", "TypeScript", "Tailwind CSS", "WebSockets"],
+        stars: "890",
+        uptime: "99.9%",
+        github: "https://github.com/LewisNZ",
+        demo: "https://lewisnz.dev",
+        features: [
+          "Real-time state synchronization via WebSockets",
+          "Automated Tailwind class tree tree-shaking parser",
+          "1-click React component JSX export with design tokens"
+        ],
+        diagram: `[ UI Sandbox ] <---> [ WebSocket Hub ] <---> [ Remote Collaborator ]
+      |
+      +---> [ AST Parser ] ---> [ Production JSX ]`
+      },
+      {
+        id: "waikato-ai",
+        title: "Waikato AI Agent Mesh",
+        category: "ai",
+        catLabel: "AI / ML",
+        shortDesc: "Autonomous multi-agent workflow engine for local business analytics & operational task execution.",
+        fullDesc: "Built for local enterprise automation, this framework coordinates autonomous LLM agents to digest regional market trends, process unstructured documents, and dispatch automated tasks.",
+        tags: ["Python", "OpenAI API", "FastAPI", "Vector DB"],
+        stars: "620",
+        uptime: "99.8%",
+        github: "https://github.com/LewisNZ",
+        demo: "https://lewisnz.dev",
+        features: [
+          "Multi-agent reasoning loops with vector memory context",
+          "Strict JSON payload schema validation pipelines",
+          "Asynchronous queue workers with Redis execution logs"
+        ],
+        diagram: `[ Trigger Input ] --> [ Task Router ] --> [ Vector Context Search ]
+                                 |
+                                 +--> [ Agent A (Analyzer) ]
+                                 +--> [ Agent B (Executor) ]`
+      },
+      {
+        id: "nexus-kv",
+        title: "NexusKV Distributed Store",
+        category: "systems",
+        catLabel: "Systems & Cloud",
+        shortDesc: "Lightweight, ultra-fast distributed key-value database engine implemented with Raft consensus in Rust.",
+        fullDesc: "NexusKV is an open-source key-value storage engine engineered for microsecond lookup latencies and strong consistency across multi-region server clusters.",
+        tags: ["Rust", "Raft Consensus", "Tokio", "gRPC"],
+        stars: "2.1k",
+        uptime: "100%",
+        github: "https://github.com/LewisNZ",
+        demo: "https://lewisnz.dev",
+        features: [
+          "Full implementation of Raft Distributed Consensus algorithm",
+          "Zero-allocation memory serialization format",
+          "SSTable disk persistency with WAL crash recovery"
+        ],
+        diagram: `[ Node 1 (Leader) ] <== Raft Log Sync ==> [ Node 2 (Follower) ]
+         |
+         +== Memory WAL Disk Persist ==>`
+      },
+      {
+        id: "nz-hydrowatch",
+        title: "NZ HydroWatch Dashboard",
+        category: "web",
+        catLabel: "Web Apps",
+        shortDesc: "Real-time water quality & hydrology sensor monitoring dashboard for Waikato and NZ lakes.",
+        fullDesc: "Environmental data platform visualizing live telemetry from river sensors across New Zealand. Provides predictive water quality analytics for regional conservation teams.",
+        tags: ["Next.js", "D3.js", "PostGIS", "WebSockets"],
+        stars: "410",
+        uptime: "99.9%",
+        github: "https://github.com/LewisNZ",
+        demo: "https://lewisnz.dev",
+        features: [
+          "Interactive map overlays rendered with Mapbox & D3.js",
+          "Sub-second sensor alert thresholds via WebSockets",
+          "Geospatial querying with PostGIS spatial indices"
+        ],
+        diagram: `[ River Sensor IoT ] --> [ MQTT Ingest ] --> [ PostGIS Spatial ]
+                                   |
+                                   +--> [ Next.js Live Map ]`
+      },
+      {
+        id: "koru-cli",
+        title: "Koru CLI Developer Tooling",
+        category: "opensource",
+        catLabel: "Open Source",
+        shortDesc: "Zero-config developer utility CLI written in Rust for cloud container pipelines and local development setup.",
+        fullDesc: "Koru CLI streamlines local cloud development environment bootstrapping, docker container orchestration, and secrets management into a single lightning-fast command.",
+        tags: ["Rust", "Tokio", "Docker SDK", "CLI"],
+        stars: "1.8k",
+        uptime: "CLI Tool",
+        github: "https://github.com/LewisNZ",
+        demo: "https://lewisnz.dev",
+        features: [
+          "Sub-10ms binary launch times",
+          "Automated local Docker container topology generator",
+          "Encrypted local credentials store using system keyring"
+        ],
+        diagram: `[ User Terminal ] --> [ Koru Binary ] --> [ System Docker Daemon ]
+                                  |
+                                  +--> [ Keyring Vault ]`
+      }
+    ];
+
+    /* ==========================================
+       2. TYPEWRITER ANIMATION
+       ========================================== */
+    const ROLES = [
+      "Full-Stack Software Engineer",
+      "UI/UX Craftsman",
+      "Open Source Contributor",
+      "Cloud & System Architect"
+    ];
+    let roleIdx = 0, charIdx = 0, isDeleting = false;
+    const typewriterEl = document.getElementById("typewriter");
+
+    function typeEffect() {
+      const currentRole = ROLES[roleIdx];
+      
+      if (isDeleting) {
+        typewriterEl.textContent = currentRole.substring(0, charIdx - 1);
+        charIdx--;
+      } else {
+        typewriterEl.textContent = currentRole.substring(0, charIdx + 1);
+        charIdx++;
+      }
+
+      let speed = isDeleting ? 40 : 80;
+
+      if (!isDeleting && charIdx === currentRole.length) {
+        speed = 2000;
+        isDeleting = true;
+      } else if (isDeleting && charIdx === 0) {
+        isDeleting = false;
+        roleIdx = (roleIdx + 1) % ROLES.length;
+        speed = 400;
+      }
+
+      setTimeout(typeEffect, speed);
+    }
+
+    /* ==========================================
+       3. LIVE NEW ZEALAND CLOCK
+       ========================================== */
+    function updateNZClock() {
+      const now = new Date();
+      // Format time in Pacific/Auckland timezone
+      const options = {
+        timeZone: 'Pacific/Auckland',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true,
+        timeZoneName: 'short'
+      };
+      const formatted = new Intl.DateTimeFormat('en-US', options).format(now);
+      document.getElementById('nzClock').textContent = formatted;
+    }
+    setInterval(updateNZClock, 1000);
+    updateNZClock();
+
+    /* ==========================================
+       4. BACKGROUND CANVAS PARTICLES & MATRIX GRID
+       ========================================== */
+    const canvas = document.getElementById('bgCanvas');
+    const ctx = canvas.getContext('2d');
+    let width, height;
+    let particles = [];
+    let mouse = { x: null, y: null, radius: 150 };
+
+    function resizeCanvas() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+      initParticles();
+    }
+
+    function initParticles() {
+      particles = [];
+      const particleCount = Math.floor((width * height) / 18000);
+      for (let i = 0; i < particleCount; i++) {
+        particles.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          vx: (Math.random() - 0.5) * 0.6,
+          vy: (Math.random() - 0.5) * 0.6,
+          size: Math.random() * 2 + 1
+        });
+      }
+    }
+
+    window.addEventListener('mousemove', (e) => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+    });
+
+    window.addEventListener('resize', resizeCanvas);
+
+    function animateParticles() {
+      ctx.clearRect(0, 0, width, height);
+
+      // Get primary color from CSS
+      const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim() || '#7aa2f7';
+
+      for (let i = 0; i < particles.length; i++) {
+        let p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+
+        if (p.x < 0 || p.x > width) p.vx *= -1;
+        if (p.y < 0 || p.y > height) p.vy *= -1;
+
+        // Draw particle point
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = primaryColor;
+        ctx.fill();
+
+        // Connect nearby particles
+        for (let j = i + 1; j < particles.length; j++) {
+          let p2 = particles[j];
+          let dx = p.x - p2.x;
+          let dy = p.y - p2.y;
+          let dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < 110) {
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.strokeStyle = primaryColor;
+            ctx.globalAlpha = (1 - dist / 110) * 0.25;
+            ctx.lineWidth = 0.8;
+            ctx.stroke();
+            ctx.globalAlpha = 1.0;
+          }
+        }
+      }
+
+      requestAnimationFrame(animateParticles);
+    }
+
+    /* ==========================================
+       5. SKILLS MATRIX FILTERING & RENDERING
+       ========================================== */
+    function renderSkills(category = 'all') {
+      const container = document.getElementById('skillsGrid');
+      container.innerHTML = '';
+
+      const filtered = category === 'all' 
+        ? SKILLS_DATA 
+        : SKILLS_DATA.filter(s => s.category === category);
+
+      filtered.forEach(skill => {
+        const card = document.createElement('div');
+        card.className = "p-5 rounded-2xl bg-custom-card border border-custom hover:border-custom-primary transition-all hover:-translate-y-1 group relative overflow-hidden space-y-3";
+        card.innerHTML = `
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="p-2.5 rounded-xl bg-custom-primary/10 text-custom-primary border border-custom-primary/20">
+                <i data-lucide="${skill.icon}" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h4 class="font-bold font-mono text-sm text-custom-main group-hover:text-custom-primary transition-colors">${skill.name}</h4>
+                <span class="text-[11px] font-mono text-custom-muted">${skill.level}</span>
+              </div>
+            </div>
+            <span class="font-mono text-xs font-bold text-custom-primary">${skill.pct}%</span>
+          </div>
+
+          <!-- Progress Bar -->
+          <div class="w-full h-1.5 rounded-full bg-custom-main overflow-hidden">
+            <div class="h-full bg-custom-primary transition-all duration-700" style="width: ${skill.pct}%"></div>
+          </div>
+
+          <div class="flex items-center justify-between text-[11px] font-mono text-custom-muted pt-1">
+            <span>Experience: <strong class="text-custom-main">${skill.exp}</strong></span>
+            <span>Projects: <strong class="text-custom-main">${skill.projects}+</strong></span>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function filterSkills(cat) {
+      document.querySelectorAll('.skill-tab-btn').forEach(btn => {
+        btn.classList.remove('bg-custom-primary', 'text-slate-950', 'font-bold');
+        btn.classList.add('bg-custom-card', 'text-custom-muted');
+      });
+      event.target.classList.remove('bg-custom-card', 'text-custom-muted');
+      event.target.classList.add('bg-custom-primary', 'text-slate-950', 'font-bold');
+
+      renderSkills(cat);
+    }
+
+    /* ==========================================
+       6. PROJECTS SHOWCASE & MODAL
+       ========================================== */
+    function renderProjects() {
+      const query = document.getElementById('projectSearch').value.toLowerCase();
+      const category = document.getElementById('projectCategoryFilter').value;
+      const container = document.getElementById('projectsGrid');
+      container.innerHTML = '';
+
+      const filtered = PROJECTS_DATA.filter(p => {
+        const matchesCategory = category === 'all' || p.category === category;
+        const matchesSearch = p.title.toLowerCase().includes(query) || 
+                              p.shortDesc.toLowerCase().includes(query) || 
+                              p.tags.some(t => t.toLowerCase().includes(query));
+        return matchesCategory && matchesSearch;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full py-12 text-center font-mono text-custom-muted space-y-2">
+            <i data-lucide="alert-circle" class="w-8 h-8 mx-auto text-custom-primary opacity-60"></i>
+            <p>No projects match your current search query.</p>
+          </div>
+        `;
+        if (window.lucide) lucide.createIcons();
+        return;
+      }
+
+      filtered.forEach(p => {
+        const card = document.createElement('div');
+        card.className = "p-6 rounded-2xl bg-custom-card border border-custom hover:border-custom-primary/60 transition-all hover:-translate-y-1.5 flex flex-col justify-between group shadow-lg";
+        card.innerHTML = `
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-custom-primary/10 text-custom-primary border border-custom-primary/20 uppercase tracking-wider">${p.catLabel}</span>
+              <div class="flex items-center gap-1 text-xs font-mono text-amber-400">
+                <i data-lucide="star" class="w-3.5 h-3.5 fill-amber-400"></i> ${p.stars}
+              </div>
+            </div>
+
+            <h3 class="text-xl font-bold font-mono text-custom-main group-hover:text-custom-primary transition-colors">${p.title}</h3>
+            
+            <p class="text-xs text-custom-muted leading-relaxed line-clamp-3">${p.shortDesc}</p>
+
+            <div class="flex flex-wrap gap-1.5 pt-2">
+              ${p.tags.map(t => `<span class="px-2 py-0.5 rounded text-[10px] font-mono bg-custom-main border border-custom text-custom-muted">${t}</span>`).join('')}
+            </div>
+          </div>
+
+          <div class="pt-6 mt-6 border-t border-custom/60 flex items-center justify-between">
+            <span class="text-[11px] font-mono text-custom-muted">Uptime: <strong class="text-emerald-400">${p.uptime}</strong></span>
+            <button onclick="openProjectModal('${p.id}')" class="px-3 py-1.5 rounded-lg bg-custom-primary/10 text-custom-primary hover:bg-custom-primary hover:text-slate-950 font-mono text-xs font-bold transition-all flex items-center gap-1">
+              View Details <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    let activeModalProject = null;
+
+    function openProjectModal(id) {
+      const p = PROJECTS_DATA.find(item => item.id === id);
+      if (!p) return;
+
+      activeModalProject = p;
+      document.getElementById('modalTitle').textContent = p.title;
+      document.getElementById('modalCategory').textContent = p.catLabel;
+      document.getElementById('modalDescription').textContent = p.fullDesc;
+      document.getElementById('modalMetrics').textContent = `Metrics: ⭐ ${p.stars} Stars | Uptime: ${p.uptime}`;
+      document.getElementById('modalGithub').href = p.github;
+      document.getElementById('modalDemo').href = p.demo;
+
+      // Render features list
+      const featuresUl = document.getElementById('modalFeatures');
+      featuresUl.innerHTML = p.features.map(f => `<li>${f}</li>`).join('');
+
+      // Render tags
+      const techDiv = document.getElementById('modalTech');
+      techDiv.innerHTML = p.tags.map(t => `<span class="px-2.5 py-1 rounded bg-custom-main border border-custom text-custom-primary">${t}</span>`).join('');
+
+      // Render architecture ASCII diagram
+      document.getElementById('modalArchitectureDiagram').textContent = p.diagram;
+
+      switchModalTab('overview');
+      document.getElementById('projectModal').classList.remove('hidden');
+      document.getElementById('projectModal').classList.add('flex');
+    }
+
+    function closeProjectModal() {
+      document.getElementById('projectModal').classList.add('hidden');
+      document.getElementById('projectModal').classList.remove('flex');
+    }
+
+    function switchModalTab(tab) {
+      ['overview', 'architecture', 'preview'].forEach(t => {
+        document.getElementById(`modalTab-${t}`).classList.add('hidden');
+        const btn = document.getElementById(`tabBtn-${t}`);
+        if (btn) {
+          btn.className = "px-3 py-1.5 rounded-lg bg-custom-main text-custom-muted border border-custom font-mono text-xs";
+        }
+      });
+
+      document.getElementById(`modalTab-${tab}`).classList.remove('hidden');
+      const activeBtn = document.getElementById(`tabBtn-${tab}`);
+      if (activeBtn) {
+        activeBtn.className = "px-3 py-1.5 rounded-lg bg-custom-primary text-slate-950 font-bold font-mono text-xs";
+      }
+    }
+
+    function runProjectSimulation() {
+      const output = document.getElementById('simOutput');
+      const latency = document.getElementById('simLatency');
+      output.textContent = "Connecting to edge relay node in Pacific/Auckland...";
+      
+      setTimeout(() => {
+        const ms = Math.floor(Math.random() * 15) + 8;
+        latency.textContent = `${ms} ms`;
+        output.textContent = JSON.stringify({
+          status: 200,
+          region: "ap-southeast-2 (Waikato Edge)",
+          project: activeModalProject ? activeModalProject.title : "Test Pipeline",
+          timestamp: new Date().toISOString(),
+          payload: {
+            auth: "VERIFIED",
+            latencyMs: ms,
+            health: "OPTIMAL"
+          }
+        }, null, 2);
+      }, 500);
+    }
+
+    /* ==========================================
+       7. INTERACTIVE EMBEDDED CLI TERMINAL
+       ========================================== */
+    let terminalHistory = [];
+    let historyIdx = -1;
+
+    function toggleTerminal() {
+      const drawer = document.getElementById('terminalDrawer');
+      drawer.classList.toggle('translate-y-full');
+      if (!drawer.classList.contains('translate-y-full')) {
+        document.getElementById('terminalInput').focus();
+      }
+    }
+
+    function handleTerminalKey(e) {
+      if (e.key === 'Enter') {
+        const cmd = e.target.value.trim();
+        if (cmd) {
+          execCmd(cmd);
+          terminalHistory.push(cmd);
+          historyIdx = terminalHistory.length;
+          e.target.value = '';
+        }
+      } else if (e.key === 'ArrowUp') {
+        if (historyIdx > 0) {
+          historyIdx--;
+          e.target.value = terminalHistory[historyIdx];
+        }
+      } else if (e.key === 'ArrowDown') {
+        if (historyIdx < terminalHistory.length - 1) {
+          historyIdx++;
+          e.target.value = terminalHistory[historyIdx];
+        } else {
+          historyIdx = terminalHistory.length;
+          e.target.value = '';
+        }
+      } else if (e.key === 'Tab') {
+        e.preventDefault();
+        const input = e.target.value.trim();
+        const cmds = ['help', 'about', 'skills', 'projects', 'contact', 'theme', 'clear', 'matrix', 'neofetch', 'time'];
+        const match = cmds.find(c => c.startsWith(input));
+        if (match) e.target.value = match;
+      }
+    }
+
+    function execCmd(commandStr) {
+      const body = document.getElementById('terminalBody');
+      const parts = commandStr.trim().split(' ');
+      const cmd = parts[0].toLowerCase();
+      const arg = parts[1] ? parts[1].toLowerCase() : null;
+
+      // Print prompt line
+      const line = document.createElement('div');
+      line.className = "text-custom-muted";
+      line.innerHTML = `<span class="text-custom-primary font-bold">lewis@waikato:~#</span> ${commandStr}`;
+      body.appendChild(line);
+
+      const res = document.createElement('div');
+      res.className = "text-custom-main pl-2 mb-2";
+
+      switch (cmd) {
+        case 'help':
+          res.innerHTML = `
+            Available Commands:<br/>
+            - <strong class="text-custom-primary">about</strong> : Brief overview of !LewisNZ<br/>
+            - <strong class="text-custom-primary">skills</strong> : Summary of technical stack<br/>
+            - <strong class="text-custom-primary">projects</strong> : List featured engineering work<br/>
+            - <strong class="text-custom-primary">contact</strong> : Print email and social links<br/>
+            - <strong class="text-custom-primary">neofetch</strong> : Display system information<br/>
+            - <strong class="text-custom-primary">theme [tokyo|matrix|cyber|minimal|nord]</strong> : Change aesthetic theme<br/>
+            - <strong class="text-custom-primary">time</strong> : Print current Waikato NZ time<br/>
+            - <strong class="text-custom-primary">clear</strong> : Clear terminal screen
+          `;
+          break;
+
+        case 'about':
+          res.textContent = "!LewisNZ is a Full-Stack Software Engineer & Cloud Systems Architect based in Waikato, New Zealand. Passionate about Go, Rust, React, and scalable cloud systems.";
+          break;
+
+        case 'skills':
+          res.innerHTML = SKILLS_DATA.map(s => `- <strong>${s.name}</strong> (${s.level})`).join('<br/>');
+          break;
+
+        case 'projects':
+          res.innerHTML = PROJECTS_DATA.map(p => `- <strong>${p.title}</strong> [${p.catLabel}]`).join('<br/>');
+          break;
+
+        case 'contact':
+          res.innerHTML = `
+            Email: lewis@lewisnz.dev<br/>
+            Discord: !LewisNZ#0001<br/>
+            GitHub: github.com/LewisNZ<br/>
+            Location: Waikato, New Zealand 🇳🇿
+          `;
+          break;
+
+        case 'neofetch':
+          res.innerHTML = `
+<pre class="text-custom-primary text-[10px] leading-tight">
+  /\\        !LewisNZ@Waikato-Node
+ /  \\       ----------------------
+/ /\\ \\      OS: Aotearoa Linux x86_64
+\\ \\/ /      Host: Waikato Cloud Edge
+ \\  /       Kernel: 6.8.0-custom-rust
+  \\/        Uptime: 99.99% Continuous
+            Shell: zsh 2.4.0
+            Stack: TypeScript, Go, Rust, React
+</pre>
+          `;
+          break;
+
+        case 'time':
+          res.textContent = `Current NZ Time: ${document.getElementById('nzClock').textContent}`;
+          break;
+
+        case 'theme':
+          if (['tokyo', 'matrix', 'cyber', 'minimal', 'nord'].includes(arg)) {
+            setTheme(arg);
+            res.textContent = `Theme switched to '${arg}'.`;
+          } else {
+            res.textContent = "Usage: theme [tokyo | matrix | cyber | minimal | nord]";
+          }
+          break;
+
+        case 'clear':
+          body.innerHTML = '';
+          return;
+
+        default:
+          res.innerHTML = `<span class="text-rose-400">Command not recognized: '${cmd}'. Type 'help' for commands.</span>`;
+      }
+
+      body.appendChild(res);
+      body.scrollTop = body.scrollHeight;
+    }
+
+    function clearTerminal() {
+      document.getElementById('terminalBody').innerHTML = '';
+    }
+
+    /* Keyboard shortcut for terminal (Ctrl + ~) */
+    window.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === '`') {
+        e.preventDefault();
+        toggleTerminal();
+      }
+    });
+
+    /* ==========================================
+       8. THEMES & UI CONTROLS
+       ========================================== */
+    function setTheme(themeName) {
+      document.documentElement.setAttribute('data-theme', themeName);
+      showToast(`Theme switched to '${themeName}'`);
+      const dropdown = document.getElementById('themeDropdown');
+      if (dropdown) dropdown.classList.add('hidden');
+    }
+
+    function toggleThemeDropdown() {
+      const dropdown = document.getElementById('themeDropdown');
+      dropdown.classList.toggle('hidden');
+    }
+
+    function toggleMobileNav() {
+      const nav = document.getElementById('mobileNav');
+      nav.classList.toggle('hidden');
+    }
+
+    function scrollToTop() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /* ==========================================
+       9. TOAST NOTIFICATIONS & CLIPBOARD
+       ========================================== */
+    function showToast(message) {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = "px-4 py-2.5 rounded-xl bg-custom-card border border-custom shadow-2xl text-xs font-mono text-custom-main flex items-center gap-2 pointer-events-auto transform translate-x-10 opacity-0 transition-all duration-300";
+      toast.innerHTML = `<i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i> ${message}`;
+      
+      container.appendChild(toast);
+      if (window.lucide) lucide.createIcons();
+
+      setTimeout(() => {
+        toast.classList.remove('translate-x-10', 'opacity-0');
+      }, 10);
+
+      setTimeout(() => {
+        toast.classList.add('translate-x-10', 'opacity-0');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    function copyToClipboard(text, successMsg) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text);
+      } else {
+        const input = document.createElement('input');
+        input.value = text;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+      }
+      showToast(successMsg);
+    }
+
+    function handleContactSubmit(e) {
+      e.preventDefault();
+      const name = document.getElementById('formName').value;
+      showToast(`Thank you ${name}! Message transmitted successfully.`);
+      document.getElementById('contactForm').reset();
+    }
+
+    /* ==========================================
+       10. INITIALIZATION
+       ========================================== */
+    window.addEventListener('load', () => {
+      typeEffect();
+      resizeCanvas();
+      animateParticles();
+      renderSkills('all');
+      renderProjects();
+      if (window.lucide) lucide.createIcons();
+    });
+  </script>
+</body>
+</html>
