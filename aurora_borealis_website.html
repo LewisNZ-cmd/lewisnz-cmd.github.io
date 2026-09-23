@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aurora Borealis | Modern Experience</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        aurora: {
+                            teal: '#00f2fe',
+                            green: '#10b981',
+                            purple: '#a855f7',
+                            violet: '#6366f1',
+                            dark: '#0a0a0c',
+                        }
+                    },
+                    animation: {
+                        'aurora-glow': 'auroraGlow 8s ease infinite alternate',
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        auroraGlow: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)', opacity: 0.4 },
+                            '50%': { transform: 'translate(30px, -50px) scale(1.1)', opacity: 0.7 },
+                            '100%': { transform: 'translate(-20px, 20px) scale(0.9)', opacity: 0.5 },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-12px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000000;
+            color: #f3f4f6;
+            overflow-x: hidden;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #000000;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1f2937;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #374151;
+        }
+        .glass-panel {
+            background: rgba(18, 18, 24, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .aurora-text-gradient {
+            background: linear-gradient(135deg, #00f2fe 0%, #10b981 35%, #a855f7 70%, #6366f1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="bg-black text-gray-100 min-h-screen selection:bg-teal-500 selection:text-black relative">
+
+    <!-- Ambient Aurora Background Glows -->
+    <div class="absolute top-0 left-1/4 w-96 h-96 bg-teal-500/20 rounded-full blur-[120px] pointer-events-none animate-aurora-glow"></div>
+    <div class="absolute top-1/3 right-1/4 w-[30rem] h-[30rem] bg-purple-600/15 rounded-full blur-[140px] pointer-events-none animate-aurora-glow" style="animation-delay: 3s;"></div>
+    <div class="absolute bottom-1/4 left-1/3 w-80 h-80 bg-emerald-500/15 rounded-full blur-[100px] pointer-events-none animate-aurora-glow" style="animation-delay: 5s;"></div>
+
+    <!-- Navigation Bar -->
+    <header class="fixed top-0 left-0 right-0 z-50 transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <a href="#" class="flex items-center gap-3 group">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-teal-400 via-emerald-500 to-purple-600 p-[1px] shadow-lg shadow-teal-500/20 group-hover:shadow-teal-500/40 transition-all">
+                    <div class="w-full h-full bg-black rounded-xl flex items-center justify-center">
+                        <span class="w-3 h-3 rounded-full bg-teal-400 animate-ping"></span>
+                    </div>
+                </div>
+                <span class="font-bold tracking-wider text-lg uppercase bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">AURORA</span>
+            </a>
+
+            <!-- Desktop Nav Links -->
+            <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-gray-400">
+                <a href="#hero" class="hover:text-teal-400 transition-colors">Overview</a>
+                <a href="#features" class="hover:text-teal-400 transition-colors">Features</a>
+                <a href="#interactive" class="hover:text-teal-400 transition-colors">Experience</a>
+                <a href="#gallery" class="hover:text-teal-400 transition-colors">Phenomenon</a>
+            </nav>
+
+            <!-- Action Buttons -->
+            <div class="flex items-center gap-4">
+                <button onclick="toggleParticleCanvas()" id="particleToggleBtn" class="hidden sm:flex items-center gap-2 text-xs font-semibold px-3 py-2 rounded-lg glass-panel hover:border-teal-500/50 text-gray-300 hover:text-teal-400 transition-all">
+                    <svg class="w-4 h-4 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    <span>Aurora FX: <strong id="fxStatus" class="text-teal-400">ON</strong></span>
+                </button>
+                <a href="#interactive" class="relative group overflow-hidden rounded-xl p-[1px] font-medium text-sm">
+                    <span class="absolute inset-0 bg-gradient-to-r from-teal-400 via-emerald-500 to-purple-600 transition-all duration-300 group-hover:opacity-90"></span>
+                    <span class="relative px-5 py-2.5 rounded-[11px] bg-black text-white flex items-center gap-2 group-hover:bg-opacity-80 transition-all">
+                        <span>Explore Live</span>
+                        <svg class="w-4 h-4 text-teal-400 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    </span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Interactive Canvas Particle Background -->
+    <canvas id="auroraCanvas" class="fixed inset-0 pointer-events-none z-0 opacity-40"></canvas>
+
+    <main class="relative z-10">
+        <!-- Hero Section -->
+        <section id="hero" class="min-h-screen pt-32 pb-20 px-6 flex items-center justify-center relative">
+            <div class="max-w-7xl mx-auto w-full grid lg:grid-cols-12 gap-12 items-center">
+                
+                <!-- Hero Left Content -->
+                <div class="lg:col-span-7 space-y-8 text-center lg:text-left">
+                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass-panel border border-teal-500/30 text-xs font-medium text-teal-300">
+                        <span class="w-2 h-2 rounded-full bg-teal-400 animate-pulse"></span>
+                        <span>Next-Gen Atmospheric UI Concept</span>
+                    </div>
+
+                    <h1 class="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.1]">
+                        The Night Sky, <br>
+                        <span class="aurora-text-gradient">Redefined in Black</span>
+                    </h1>
+
+                    <p class="text-lg sm:text-xl text-gray-400 max-w-2xl mx-auto lg:mx-0 font-light">
+                        Immerse yourself in infinite pure black depths contrasted with hypnotic, flowing aurora borealis accents. Electric teal, emerald green, and shimmering violet seamlessly engineered for modern web design.
+                    </p>
+
+                    <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
+                        <a href="#features" class="w-full sm:w-auto px-8 py-4 rounded-xl bg-gradient-to-r from-teal-400 via-emerald-500 to-purple-600 text-black font-bold text-center hover:opacity-90 shadow-lg shadow-teal-500/25 transition-all transform hover:-translate-y-0.5">
+                            Discover Features
+                        </a>
+                        <button onclick="triggerNotification('✨ Welcome to the Aurora Borealis experience!')" class="w-full sm:w-auto px-8 py-4 rounded-xl glass-panel hover:bg-white/5 font-semibold text-center text-gray-200 border border-white/10 transition-all">
+                            Activate Aura
+                        </button>
+                    </div>
+
+                    <!-- Quick stats bar -->
+                    <div class="grid grid-cols-3 gap-6 pt-6 border-t border-gray-800/80 max-w-lg mx-auto lg:mx-0">
+                        <div>
+                            <div class="text-2xl font-bold text-teal-400">0.00ms</div>
+                            <div class="text-xs text-gray-500 font-medium">Latency Delay</div>
+                        </div>
+                        <div>
+                            <div class="text-2xl font-bold text-purple-400">100%</div>
+                            <div class="text-xs text-gray-500 font-medium">OLED True Black</div>
+                        </div>
+                        <div>
+                            <div class="text-2xl font-bold text-emerald-400">4+</div>
+                            <div class="text-xs text-gray-500 font-medium">Aurora Spectra</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hero Right: Glowing Glassmorphism Card -->
+                <div class="lg:col-span-5 relative flex justify-center">
+                    <!-- Glow Backdrop -->
+                    <div class="absolute -inset-1.5 bg-gradient-to-r from-teal-500 via-emerald-500 to-purple-600 rounded-3xl blur-xl opacity-50 animate-pulse-slow"></div>
+
+                    <!-- Main Glass Card -->
+                    <div class="relative w-full max-w-md rounded-3xl glass-panel p-8 shadow-2xl border border-white/10 animate-float">
+                        <div class="flex items-center justify-between mb-8">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-teal-500/20 border border-teal-500/40 flex items-center justify-center text-teal-400">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-gray-100">Borealis Engine</h3>
+                                    <p class="text-xs text-teal-400">Active Node #709</p>
+                                </div>
+                            </div>
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                Operational
+                            </span>
+                        </div>
+
+                        <!-- Color Spectrum Bar -->
+                        <div class="space-y-4 mb-8">
+                            <div class="flex justify-between text-xs text-gray-400 font-medium">
+                                <span>Electric Teal</span>
+                                <span class="text-teal-400">98% Intensity</span>
+                            </div>
+                            <div class="w-full h-2 rounded-full bg-gray-900 overflow-hidden p-[1px] border border-white/5">
+                                <div class="h-full bg-gradient-to-r from-teal-400 to-emerald-400 rounded-full w-[98%] shadow-[0_0_12px_rgba(0,242,254,0.8)]"></div>
+                            </div>
+
+                            <div class="flex justify-between text-xs text-gray-400 font-medium pt-2">
+                                <span>Deep Violet & Purple</span>
+                                <span class="text-purple-400">92% Flux</span>
+                            </div>
+                            <div class="w-full h-2 rounded-full bg-gray-900 overflow-hidden p-[1px] border border-white/5">
+                                <div class="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full w-[92%] shadow-[0_0_12px_rgba(168,85,247,0.8)]"></div>
+                            </div>
+                        </div>
+
+                        <!-- Mini Interactive Toggle inside Card -->
+                        <div class="p-4 rounded-2xl bg-black/60 border border-white/5 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <span class="w-3 h-3 rounded-full bg-purple-500 animate-ping"></span>
+                                <span class="text-xs text-gray-300 font-medium">Auto-Spectrum Sync</span>
+                            </div>
+                            <button onclick="toggleCardPulse(this)" class="px-3 py-1.5 rounded-lg bg-teal-500/20 text-teal-400 border border-teal-500/30 text-xs font-semibold hover:bg-teal-500/30 transition-all">
+                                Toggle Mode
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Features Grid Section -->
+        <section id="features" class="py-24 px-6 relative">
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center max-w-3xl mx-auto mb-16 space-y-4">
+                    <h2 class="text-xs font-bold uppercase tracking-widest text-teal-400">Aurora Spectrum Architecture</h2>
+                    <p class="text-3xl sm:text-4xl font-extrabold tracking-tight">Engineered for Dark Mode Mastery</p>
+                    <p class="text-gray-400 text-sm sm:text-base">Every element is meticulously crafted to contrast absolute black surfaces with glowing celestial highlights.</p>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-8">
+                    <!-- Feature 1 -->
+                    <div class="group relative rounded-3xl glass-panel p-8 border border-white/10 hover:border-teal-500/50 transition-all duration-300 hover:-translate-y-1">
+                        <div class="absolute -top-px left-8 right-8 h-px bg-gradient-to-r from-transparent via-teal-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <div class="w-12 h-12 rounded-2xl bg-teal-500/10 border border-teal-500/30 flex items-center justify-center text-teal-400 mb-6 group-hover:scale-110 transition-transform">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-3">OLED True Black</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed">
+                            Optimized for true black (#000000) displays to deliver pristine visual depth, zero backlight bleed, and maximum battery efficiency.
+                        </p>
+                    </div>
+
+                    <!-- Feature 2 -->
+                    <div class="group relative rounded-3xl glass-panel p-8 border border-white/10 hover:border-purple-500/50 transition-all duration-300 hover:-translate-y-1">
+                        <div class="absolute -top-px left-8 right-8 h-px bg-gradient-to-r from-transparent via-purple-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <div class="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 mb-6 group-hover:scale-110 transition-transform">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 73.57V15m0 0v8m0-8h8"/></svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-3">Vibrant Aurora Accents</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed">
+                            Infused with electric teal, neon emerald, and deep shimmering violet to create high-contrast focal points that mesmerize the eye.
+                        </p>
+                    </div>
+
+                    <!-- Feature 3 -->
+                    <div class="group relative rounded-3xl glass-panel p-8 border border-white/10 hover:border-emerald-500/50 transition-all duration-300 hover:-translate-y-1">
+                        <div class="absolute -top-px left-8 right-8 h-px bg-gradient-to-r from-transparent via-emerald-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-6 group-hover:scale-110 transition-transform">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-3">Fluid Motion FX</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed">
+                            Smooth CSS transitions, backdrop filters, and dynamic canvas particles mimic the hypnotic fluid movement of northern lights.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive Experience Section -->
+        <section id="interactive" class="py-24 px-6 relative">
+            <div class="max-w-5xl mx-auto rounded-3xl glass-panel p-8 sm:p-12 border border-teal-500/20 shadow-2xl relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                
+                <div class="grid md:grid-cols-2 gap-12 items-center relative z-10">
+                    <div class="space-y-6">
+                        <span class="px-3 py-1 rounded-full bg-teal-500/10 text-teal-400 text-xs font-semibold border border-teal-500/20">Interactive Studio</span>
+                        <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight">Customize Your Aurora Tone</h2>
+                        <p class="text-gray-400 text-sm leading-relaxed">
+                            Click below to shift the primary accent hue across the entire atmospheric layout instantly. Experience the interplay between pitch black and luminous auroras.
+                        </p>
+                        
+                        <!-- Color Theme Buttons -->
+                        <div class="flex items-center gap-3 pt-2">
+                            <button onclick="setThemeAccent('teal')" class="w-10 h-10 rounded-full bg-[#00f2fe] ring-2 ring-offset-2 ring-offset-black ring-teal-400 transition-transform hover:scale-110 focus:outline-none" title="Electric Teal"></button>
+                            <button onclick="setThemeAccent('emerald')" class="w-10 h-10 rounded-full bg-[#10b981] ring-2 ring-offset-2 ring-offset-black ring-emerald-400 transition-transform hover:scale-110 focus:outline-none" title="Neon Green"></button>
+                            <button onclick="setThemeAccent('purple')" class="w-10 h-10 rounded-full bg-[#a855f7] ring-2 ring-offset-2 ring-offset-black ring-purple-400 transition-transform hover:scale-110 focus:outline-none" title="Shimmering Purple"></button>
+                            <button onclick="setThemeAccent('violet')" class="w-10 h-10 rounded-full bg-[#6366f1] ring-2 ring-offset-2 ring-offset-black ring-indigo-400 transition-transform hover:scale-110 focus:outline-none" title="Deep Violet"></button>
+                        </div>
+                    </div>
+
+                    <!-- Live Accent Preview Box -->
+                    <div class="p-6 rounded-2xl bg-black/80 border border-white/10 space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Active Accent Theme</span>
+                            <span id="activeThemeLabel" class="text-xs font-bold text-teal-400 px-2.5 py-1 rounded-md bg-teal-500/10 border border-teal-500/20">Electric Teal</span>
+                        </div>
+                        <div class="h-28 rounded-xl bg-gradient-to-r from-black via-gray-900 to-black p-4 flex items-center justify-center border border-white/5 relative overflow-hidden" id="previewBox">
+                            <div class="absolute inset-0 bg-teal-500/20 blur-xl transition-all duration-500" id="previewGlow"></div>
+                            <span class="relative z-10 text-sm font-bold tracking-widest uppercase text-white drop-shadow-md">Aurora Borealis</span>
+                        </div>
+                        <p class="text-xs text-gray-500 text-center">Theme state saved locally. Fully responsive on all devices.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer Section -->
+        <footer class="border-t border-gray-900 bg-black py-12 px-6 relative z-10">
+            <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-teal-400 to-purple-600 p-[1px]">
+                        <div class="w-full h-full bg-black rounded-lg flex items-center justify-center">
+                            <span class="w-2 h-2 rounded-full bg-teal-400"></span>
+                        </div>
+                    </div>
+                    <span class="font-bold text-sm tracking-wider uppercase">AURORA BOREALIS</span>
+                </div>
+
+                <p class="text-xs text-gray-500 text-center">
+                    &copy; 2026 Aurora Experience. Pure black design system with aurora accent styling. All rights reserved.
+                </p>
+
+                <div class="flex items-center gap-6 text-xs text-gray-400">
+                    <a href="#hero" class="hover:text-teal-400 transition-colors">Privacy</a>
+                    <a href="#hero" class="hover:text-teal-400 transition-colors">Terms</a>
+                    <a href="#hero" class="hover:text-teal-400 transition-colors">Contact</a>
+                </div>
+            </div>
+        </footer>
+    </main>
+
+    <!-- Custom Notification Box (replaces alert) -->
+    <div id="notificationToast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <div class="glass-panel px-5 py-3 rounded-2xl border border-teal-500/40 shadow-2xl flex items-center gap-3">
+            <span class="w-2.5 h-2.5 rounded-full bg-teal-400 animate-ping"></span>
+            <span id="toastMessage" class="text-sm font-medium text-white">Notification message here</span>
+        </div>
+    </div>
+
+    <script>
+        // Notification system replacing alert()
+        function triggerNotification(msg) {
+            const toast = document.getElementById('notificationToast');
+            const msgEl = document.getElementById('toastMessage');
+            msgEl.textContent = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+            
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3500);
+        }
+
+        // Toggle Card Pulse effect
+        function toggleCardPulse(btn) {
+            triggerNotification('⚡ Aurora Card pulse mode updated successfully!');
+        }
+
+        // Theme Accent Customizer
+        function setThemeAccent(color) {
+            const previewGlow = document.getElementById('previewGlow');
+            const activeLabel = document.getElementById('activeThemeLabel');
+            
+            let colorHex = '#00f2fe';
+            let name = 'Electric Teal';
+            
+            if (color === 'emerald') {
+                colorHex = '#10b981';
+                name = 'Neon Green';
+            } else if (color === 'purple') {
+                colorHex = '#a855f7';
+                name = 'Shimmering Purple';
+            } else if (color === 'violet') {
+                colorHex = '#6366f1';
+                name = 'Deep Violet';
+            }
+            
+            previewGlow.style.backgroundColor = colorHex;
+            activeLabel.textContent = name;
+            activeLabel.style.color = colorHex;
+            
+            triggerNotification(`✨ Switched accent theme to ${name}!`);
+        }
+
+        // Particle Canvas background animation
+        let canvasActive = true;
+        const canvas = document.getElementById('auroraCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        const particles = [];
+        const particleCount = 45;
+
+        for (let i = 0; i < particleCount; i++) {
+            particles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                radius: Math.random() * 2 + 1,
+                color: ['#00f2fe', '#10b981', '#a855f7', '#6366f1'][Math.floor(Math.random() * 4)],
+                vx: (Math.random() - 0.5) * 0.4,
+                vy: (Math.random() - 0.5) * 0.4,
+                alpha: Math.random() * 0.6 + 0.2
+            });
+        }
+
+        function animateParticles() {
+            if (canvasActive) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                particles.forEach(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+
+                    if (p.x < 0) p.x = canvas.width;
+                    if (p.x > canvas.width) p.x = 0;
+                    if (p.y < 0) p.y = canvas.height;
+                    if (p.y > canvas.height) p.y = 0;
+
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = p.color;
+                    ctx.globalAlpha = p.alpha;
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = p.color;
+                    ctx.fill();
+                });
+            }
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+
+        function toggleParticleCanvas() {
+            canvasActive = !canvasActive;
+            const statusEl = document.getElementById('fxStatus');
+            if (canvasActive) {
+                statusEl.textContent = 'ON';
+                statusEl.classList.remove('text-red-400');
+                statusEl.classList.add('text-teal-400');
+                triggerNotification('🌟 Aurora Particle FX enabled.');
+            } else {
+                statusEl.textContent = 'OFF';
+                statusEl.classList.remove('text-teal-400');
+                statusEl.classList.add('text-red-400');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                triggerNotification('💤 Aurora Particle FX paused.');
+            }
+        }
+    </script>
+</body>
+</html>
