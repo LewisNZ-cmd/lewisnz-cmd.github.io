@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Retro 3D Raycaster - Wolfenstein / Doom Style</title>
+    <!-- Google Fonts VT323 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS for UI Layout -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'VT323', monospace;
+            background-color: #050505;
+            color: #d1d5db;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+            overflow: hidden;
+        }
+        
+        .font-vt323 {
+            font-family: 'VT323', monospace;
+        }
+
+        #game-container {
+            position: relative;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.15);
+        }
+
+        /* Screen flash overlay for damage/pickups */
+        #flash-overlay {
+            pointer-events: none;
+            transition: opacity 0.15s ease-out;
+        }
+
+        /* Custom Pixelated Canvas Rendering */
+        canvas {
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+
+        /* CRT Screen Effect Lines */
+        .crt-overlay::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+            background-size: 100% 4px;
+            z-index: 10;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-2 md:p-4">
+
+    <!-- Game Title / Info Bar -->
+    <div class="w-full max-w-4xl flex justify-between items-center mb-2 px-2 text-xs md:text-base">
+        <div class="flex items-center space-x-2">
+            <span class="text-red-500 font-bold text-lg md:text-2xl tracking-wider">RETRO-3D</span>
+            <span class="text-gray-500">| Repo: <code class="text-yellow-400">lewisnz-cmd.github.io</code></span>
+        </div>
+        <div class="flex space-x-2">
+            <button id="btn-sound" class="bg-gray-800 hover:bg-gray-700 text-yellow-400 border border-yellow-600 px-3 py-1 rounded text-sm font-bold transition">
+                🔊 SOUND: ON
+            </button>
+            <button id="btn-help" class="bg-gray-800 hover:bg-gray-700 text-cyan-400 border border-cyan-600 px-3 py-1 rounded text-sm font-bold transition">
+                ❓ CONTROLS
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Game Frame -->
+    <div id="game-container" class="relative w-full max-w-4xl aspect-[4/3] bg-black border-4 border-gray-800 rounded-lg overflow-hidden crt-overlay flex flex-col">
+        
+        <!-- Viewport Area (Raycaster Render) -->
+        <div class="relative flex-1 w-full overflow-hidden bg-black">
+            <canvas id="canvas-game" class="w-full h-full block"></canvas>
+            
+            <!-- Screen Damage/Pickup Flash Overlay -->
+            <div id="flash-overlay" class="absolute inset-0 bg-red-600 opacity-0 z-20"></div>
+
+            <!-- Minimap Overlay -->
+            <div id="minimap-container" class="absolute top-3 right-3 border-2 border-yellow-600 bg-black/80 rounded p-1 z-20">
+                <canvas id="canvas-minimap" width="110" height="110" class="block"></canvas>
+            </div>
+
+            <!-- On-Screen Notifications/Messages -->
+            <div id="game-message" class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 text-yellow-400 text-2xl md:text-3xl font-bold text-center tracking-widest drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] opacity-0 transition-opacity duration-300 pointer-events-none z-30">
+                LEVEL COMPLETED!
+            </div>
+
+            <!-- Start / Pause Overlay Screen -->
+            <div id="overlay-screen" class="absolute inset-0 bg-black/90 flex flex-col items-center justify-center p-6 z-40 text-center">
+                <h1 class="text-4xl md:text-6xl text-red-600 font-extrabold tracking-widest mb-2 drop-shadow-[0_0_10px_rgba(255,0,0,0.8)]">
+                    OPERATION: OUTBREAK
+                </h1>
+                <p class="text-gray-400 text-base md:text-xl max-w-md mb-6">
+                    Classic 3D Raycasting Engine running on GitHub Pages.<br>
+                    Eliminate all hostiles and escape through the exit elevator!
+                </p>
+                <button id="btn-start" class="bg-red-700 hover:bg-red-600 text-white font-bold text-2xl px-8 py-3 rounded border-2 border-red-400 shadow-lg shadow-red-900/50 transform hover:scale-105 transition">
+                    START MISSION
+                </button>
+                
+                <div class="mt-6 text-xs md:text-sm text-gray-500 border-t border-gray-800 pt-4 max-w-md">
+                    <p class="text-yellow-500 font-bold mb-1">Asset Status:</p>
+                    <p>Uses local <code class="text-cyan-400">./floor.png</code> & <code class="text-cyan-400">./UI.png</code> if found, with procedural Canvas fallbacks integrated.</p>
+                </div>
+            </div>
+
+            <!-- Mobile Touch Controls Layer (Automatically shown on touch devices) -->
+            <div id="touch-controls" class="absolute inset-0 z-30 pointer-events-none hidden flex-col justify-end p-4">
+                <div class="flex justify-between items-end w-full pointer-events-auto">
+                    <!-- D-Pad -->
+                    <div class="grid grid-cols-3 gap-1 w-36 h-36 opacity-70">
+                        <div></div>
+                        <button id="touch-up" class="bg-gray-800 text-white rounded border border-gray-600 active:bg-yellow-600 text-xl flex items-center justify-center">▲</button>
+                        <div></div>
+                        <button id="touch-left" class="bg-gray-800 text-white rounded border border-gray-600 active:bg-yellow-600 text-xl flex items-center justify-center">◀</button>
+                        <button id="touch-down" class="bg-gray-800 text-white rounded border border-gray-600 active:bg-yellow-600 text-xl flex items-center justify-center">▼</button>
+                        <button id="touch-right" class="bg-gray-800 text-white rounded border border-gray-600 active:bg-yellow-600 text-xl flex items-center justify-center">▶</button>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex space-x-3 opacity-80">
+                        <button id="touch-interact" class="w-14 h-14 bg-blue-700 text-white rounded-full border-2 border-blue-400 font-bold active:bg-blue-500 flex items-center justify-center text-sm">USE</button>
+                        <button id="touch-shoot" class="w-16 h-16 bg-red-700 text-white rounded-full border-2 border-red-400 font-bold active:bg-red-500 flex items-center justify-center text-lg">FIRE</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Classic Wolfenstein/Doom Style HUD Bar -->
+        <div id="hud-bar" class="relative h-20 md:h-24 bg-gray-900 border-t-4 border-gray-700 flex items-center justify-around px-2 md:px-4 z-20 font-vt323 select-none">
+            <!-- Dynamic HUD Background Canvas (loads UI.png or procedural fallback) -->
+            <canvas id="canvas-hud-bg" class="absolute inset-0 w-full h-full -z-10 object-cover"></canvas>
+
+            <!-- LEVEL / FLOOR -->
+            <div class="flex flex-col items-center justify-center bg-black/60 px-2 py-1 rounded border border-gray-800 w-16 md:w-20">
+                <span class="text-gray-400 text-xs md:text-sm leading-none">FLOOR</span>
+                <span id="hud-level" class="text-yellow-400 text-xl md:text-3xl font-bold leading-none">01</span>
+            </div>
+
+            <!-- SCORE -->
+            <div class="flex flex-col items-center justify-center bg-black/60 px-2 py-1 rounded border border-gray-800 w-24 md:w-32">
+                <span class="text-gray-400 text-xs md:text-sm leading-none">SCORE</span>
+                <span id="hud-score" class="text-cyan-400 text-xl md:text-3xl font-bold leading-none">000000</span>
+            </div>
+
+            <!-- HEALTH -->
+            <div class="flex flex-col items-center justify-center bg-black/60 px-2 py-1 rounded border border-gray-800 w-20 md:w-28">
+                <span class="text-gray-400 text-xs md:text-sm leading-none">HEALTH</span>
+                <span id="hud-health" class="text-red-500 text-2xl md:text-4xl font-bold leading-none">100%</span>
+            </div>
+
+            <!-- FACE PORTRAIT -->
+            <div class="w-14 h-14 md:w-18 md:h-18 border-2 border-gray-600 bg-gray-950 rounded overflow-hidden flex items-center justify-center relative shadow-inner">
+                <canvas id="canvas-face" width="64" height="64" class="w-full h-full"></canvas>
+            </div>
+
+            <!-- ARMOR -->
+            <div class="flex flex-col items-center justify-center bg-black/60 px-2 py-1 rounded border border-gray-800 w-16 md:w-24">
+                <span class="text-gray-400 text-xs md:text-sm leading-none">ARMOR</span>
+                <span id="hud-armor" class="text-blue-400 text-2xl md:text-3xl font-bold leading-none">00%</span>
+            </div>
+
+            <!-- AMMO -->
+            <div class="flex flex-col items-center justify-center bg-black/60 px-2 py-1 rounded border border-gray-800 w-20 md:w-28">
+                <span class="text-gray-400 text-xs md:text-sm leading-none">AMMO</span>
+                <span id="hud-ammo" class="text-yellow-400 text-2xl md:text-4xl font-bold leading-none">50</span>
+            </div>
+
+            <!-- KEYS -->
+            <div class="hidden sm:flex flex-col items-center justify-center bg-black/60 px-2 py-1 rounded border border-gray-800 w-16">
+                <span class="text-gray-400 text-xs leading-none">KEYS</span>
+                <div class="flex space-x-1 mt-1">
+                    <span id="key-gold" class="w-3 h-3 rounded-full bg-gray-800 border border-gray-600"></span>
+                    <span id="key-blue" class="w-3 h-3 rounded-full bg-gray-800 border border-gray-600"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Help / Controls Dialog -->
+    <div id="modal-help" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 hidden p-4">
+        <div class="bg-gray-900 border-2 border-cyan-500 rounded-lg p-6 max-w-lg w-full text-left relative font-vt323 text-lg">
+            <h2 class="text-2xl text-cyan-400 font-bold mb-4 border-b border-gray-700 pb-2">MISSION CONTROLS</h2>
+            <ul class="space-y-2 text-gray-300">
+                <li><b class="text-yellow-400">W, A, S, D / Arrow Keys:</b> Move & Turn</li>
+                <li><b class="text-yellow-400">Mouse Movement:</b> Turn camera (Click screen to lock mouse)</li>
+                <li><b class="text-yellow-400">Left Click / Spacebar:</b> Fire weapon</li>
+                <li><b class="text-yellow-400">E Key:</b> Interact / Open doors / Use elevators</li>
+                <li><b class="text-yellow-400">Shift Key:</b> Sprint speed boost</li>
+                <li><b class="text-yellow-400">ESC Key:</b> Pause game menu</li>
+            </ul>
+            <div class="mt-6 text-right">
+                <button id="btn-close-help" class="bg-cyan-600 hover:bg-cyan-500 text-black font-bold px-6 py-2 rounded text-xl">
+                    GOT IT!
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN GAME LOGIC -->
+    <script>
+        /**
+         * RETRO 3D RAYCASTING ENGINE & GAME LOGIC
+         * Target Platform: GitHub Pages (lewisnz-cmd.github.io)
+         * Assets: Searches for './floor.png' & './UI.png' with instant procedural fallbacks.
+         */
+
+        // --- GLOBAL ENGINE SETUP & CONSTANTS ---
+        const SCREEN_WIDTH = 320;   // Low retro resolution for true Wolfenstein 3D pixelated vibe
+        const SCREEN_HEIGHT = 200;
+        const FOV = Math.PI / 3;     // 60 degrees Field of View
+        const MAP_SIZE = 16;         // 16x16 grid maps
+
+        // Engine State
+        let canvas, ctx;
+        let minimapCanvas, minimapCtx;
+        let hudBgCanvas, hudBgCtx;
+        let faceCanvas, faceCtx;
+
+        let soundEnabled = true;
+        let audioCtx = null;
+        let gameRunning = false;
+        let isPaused = false;
+
+        // Assets Container
+        const assets = {
+            floorTexture: null,
+            uiBgTexture: null,
+            wallTextures: [],
+            sprites: {}
+        };
+
+        // --- MAP DEFINITION ---
+        // 1: Blue Wall, 2: Red Brick Wall, 3: Wood Wall, 4: Elevator Door, 8: Regular Door
+        const MAP_LEVEL_1 = [
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+            [1,0,0,0,1,0,0,0,0,0,0,1,0,0,0,1],
+            [1,0,0,0,1,0,2,2,8,2,0,1,0,0,0,1],
+            [1,0,0,0,8,0,2,0,0,2,0,8,0,0,0,1],
+            [1,1,8,1,1,0,2,0,0,2,0,1,1,8,1,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,3,3,3,0,1,1,1,1,0,3,3,3,0,1],
+            [1,0,3,0,0,0,1,0,0,1,0,0,0,3,0,1],
+            [1,0,8,0,0,0,1,0,0,1,0,0,0,8,0,1],
+            [1,0,3,0,0,0,1,1,8,1,0,0,0,3,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,1,1,8,1,1,0,2,2,0,1,1,8,1,1,1],
+            [1,0,0,0,0,1,0,2,2,0,1,0,0,0,0,1],
+            [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],
+            [1,0,0,0,0,1,0,0,4,0,1,0,0,0,0,1],
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+        ];
+
+        // --- PLAYER STATE ---
+        const player = {
+            x: 2.5,
+            y: 2.5,
+            dirX: 1,
+            dirY: 0,
+            planeX: 0,
+            planeY: 0.66, // 2D raycaster camera plane
+            moveSpeed: 0.045,
+            rotSpeed: 0.035,
+            health: 100,
+            armor: 25,
+            ammo: 40,
+            score: 0,
+            level: 1,
+            keys: { gold: false, blue: false },
+            isShooting: false,
+            shootAnimFrame: 0,
+            hitFlash: 0,
+            pickupFlash: 0
+        };
+
+        // --- INTERACTIVE OBJECTS & ENEMIES ---
+        let doors = [];
+        let sprites = [];
+        let keysPressed = {};
+
+        // --- INITIALIZATION ---
+        window.addEventListener('DOMContentLoaded', () => {
+            initCanvases();
+            generateFallbackTextures();
+            tryLoadExternalAssets();
+            setupEventListeners();
+            initLevel();
+            renderHUD();
+            renderFace(0);
+        });
+
+        function initCanvases() {
+            canvas = document.getElementById('canvas-game');
+            canvas.width = SCREEN_WIDTH;
+            canvas.height = SCREEN_HEIGHT;
+            ctx = canvas.getContext('2d');
+
+            minimapCanvas = document.getElementById('canvas-minimap');
+            minimapCtx = minimapCanvas.getContext('2d');
+
+            hudBgCanvas = document.getElementById('canvas-hud-bg');
+            hudBgCtx = hudBgCanvas.getContext('2d');
+
+            faceCanvas = document.getElementById('canvas-face');
+            faceCtx = faceCanvas.getContext('2d');
+        }
+
+        // --- ASSET LOADER WITH PROCEDURAL FALLBACKS ---
+        function generateFallbackTextures() {
+            // 1. Procedural Floor Texture (64x64 grid pattern with noise)
+            const floorCanvas = document.createElement('canvas');
+            floorCanvas.width = 64;
+            floorCanvas.height = 64;
+            const fCtx = floorCanvas.getContext('2d');
+            fCtx.fillStyle = '#222225';
+            fCtx.fillRect(0, 0, 64, 64);
+            fCtx.strokeStyle = '#333338';
+            fCtx.lineWidth = 2;
+            fCtx.strokeRect(0, 0, 64, 64);
+            for (let i = 0; i < 200; i++) {
+                fCtx.fillStyle = Math.random() > 0.5 ? '#1a1a1d' : '#2a2a30';
+                fCtx.fillRect(Math.random() * 64, Math.random() * 64, 2, 2);
+            }
+            assets.floorTexture = floorCanvas;
+
+            // 2. Procedural Wall Textures (Blue, Brick, Wood, Door)
+            assets.wallTextures = [
+                createWallTexture('#1e3a8a', '#3b82f6', 'grid'),   // 0: Blue
+                createWallTexture('#7f1d1d', '#ef4444', 'brick'),  // 1: Red Brick
+                createWallTexture('#451a03', '#9a3412', 'wood'),   // 2: Wood
+                createWallTexture('#374151', '#9ca3af', 'door')    // 3: Steel Door
+            ];
+
+            // 3. Procedural UI HUD Background
+            hudBgCanvas.width = 320;
+            hudBgCanvas.height = 40;
+            hudBgCtx.fillStyle = '#1f2937';
+            hudBgCtx.fillRect(0, 0, 320, 40);
+            hudBgCtx.fillStyle = '#111827';
+            hudBgCtx.fillRect(2, 2, 316, 36);
+            hudBgCtx.strokeStyle = '#4b5563';
+            hudBgCtx.strokeRect(1, 1, 318, 38);
+        }
+
+        function createWallTexture(baseColor, accentColor, type) {
+            const c = document.createElement('canvas');
+            c.width = 64;
+            c.height = 64;
+            const x = c.getContext('2d');
+            x.fillStyle = baseColor;
+            x.fillRect(0, 0, 64, 64);
+            x.fillStyle = accentColor;
+
+            if (type === 'brick') {
+                for (let y = 0; y < 64; y += 8) {
+                    const offset = (y / 8) % 2 === 0 ? 0 : 8;
+                    x.fillRect(0, y, 64, 1);
+                    for (let bx = offset; bx < 64; bx += 16) {
+                        x.fillRect(bx, y, 1, 8);
+                    }
+                }
+            } else if (type === 'wood') {
+                for (let i = 0; i < 64; i += 4) {
+                    x.fillRect(i, 0, 1, 64);
+                }
+            } else if (type === 'grid') {
+                x.strokeStyle = accentColor;
+                x.strokeRect(2, 2, 60, 60);
+                x.strokeRect(16, 16, 32, 32);
+            } else if (type === 'door') {
+                x.fillStyle = '#111827';
+                x.fillRect(4, 4, 56, 56);
+                x.fillStyle = '#f59e0b';
+                x.fillRect(50, 30, 4, 8); // Door handle
+            }
+            return c;
+        }
+
+        function tryLoadExternalAssets() {
+            // Attempt to load floor.png from repo path
+            const imgFloor = new Image();
+            imgFloor.src = './floor.png';
+            imgFloor.onload = () => {
+                const c = document.createElement('canvas');
+                c.width = 64; c.height = 64;
+                c.getContext('2d').drawImage(imgFloor, 0, 0, 64, 64);
+                assets.floorTexture = c;
+                console.log('Successfully loaded floor.png');
+            };
+
+            // Attempt to load UI.png from repo path
+            const imgUI = new Image();
+            imgUI.src = './UI.png';
+            imgUI.onload = () => {
+                hudBgCtx.drawImage(imgUI, 0, 0, hudBgCanvas.width, hudBgCanvas.height);
+                console.log('Successfully loaded UI.png');
+            };
+        }
+
+        // --- AUDIO SYNTHESIZER (Web Audio API) ---
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            initAudio();
+            if (!audioCtx) return;
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            const now = audioCtx.currentTime;
+
+            if (type === 'shoot') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.exponentialRampToValueAtTime(10, now + 0.15);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                osc.start(now);
+                osc.stop(now + 0.15);
+            } else if (type === 'pickup') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.exponentialRampToValueAtTime(800, now + 0.12);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+                osc.start(now);
+                osc.stop(now + 0.12);
+            } else if (type === 'door') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(120, now);
+                osc.frequency.linearRampToValueAtTime(60, now + 0.3);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            } else if (type === 'hurt') {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.exponentialRampToValueAtTime(40, now + 0.2);
+                gain.gain.setValueAtTime(0.4, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                osc.start(now);
+                osc.stop(now + 0.2);
+            } else if (type === 'enemy_die') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(200, now);
+                osc.frequency.exponentialRampToValueAtTime(30, now + 0.4);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                osc.start(now);
+                osc.stop(now + 0.4);
+            }
+        }
+
+        // --- LEVEL & ENTITY INITIALIZATION ---
+        function initLevel() {
+            doors = [];
+            sprites = [];
+
+            // Scan map for doors and populate items/enemies
+            for (let y = 0; y < MAP_SIZE; y++) {
+                for (let x = 0; x < MAP_SIZE; x++) {
+                    if (MAP_LEVEL_1[y][x] === 8) {
+                        doors.push({ x, y, state: 'closed', offset: 0 }); // offset: 0 (closed) -> 1 (open)
+                    }
+                }
+            }
+
+            // Spawn Enemies & Pickups
+            sprites = [
+                { x: 8.5, y: 3.5, type: 'guard', health: 30, state: 'patrol', angle: 0 },
+                { x: 13.5, y: 7.5, type: 'guard', health: 30, state: 'patrol', angle: 0 },
+                { x: 7.5, y: 12.5, type: 'guard', health: 30, state: 'patrol', angle: 0 },
+                { x: 3.5, y: 8.5, type: 'ammo', collected: false },
+                { x: 13.5, y: 2.5, type: 'health', collected: false },
+                { x: 8.5, y: 7.5, type: 'armor', collected: false }
+            ];
+        }
+
+        // --- EVENT LISTENERS ---
+        function setupEventListeners() {
+            window.addEventListener('keydown', e => {
+                keysPressed[e.code] = true;
+                if (e.code === 'KeyE') interact();
+                if (e.code === 'Space') fireWeapon();
+                if (e.code === 'Escape') togglePause();
+            });
+
+            window.addEventListener('keyup', e => {
+                keysPressed[e.code] = false;
+            });
+
+            canvas.addEventListener('click', () => {
+                if (gameRunning) {
+                    canvas.requestPointerLock?.();
+                    fireWeapon();
+                }
+            });
+
+            window.addEventListener('mousemove', e => {
+                if (document.pointerLockElement === canvas && gameRunning && !isPaused) {
+                    rotatePlayer(e.movementX * 0.003);
+                }
+            });
+
+            // UI Buttons
+            document.getElementById('btn-start').addEventListener('click', startGame);
+            document.getElementById('btn-sound').addEventListener('click', () => {
+                soundEnabled = !soundEnabled;
+                document.getElementById('btn-sound').innerText = `🔊 SOUND: ${soundEnabled ? 'ON' : 'OFF'}`;
+            });
+            document.getElementById('btn-help').addEventListener('click', () => {
+                document.getElementById('modal-help').classList.remove('hidden');
+            });
+            document.getElementById('btn-close-help').addEventListener('click', () => {
+                document.getElementById('modal-help').classList.add('hidden');
+            });
+
+            // Setup Mobile Touch Controls
+            if ('ontouchstart' in window) {
+                document.getElementById('touch-controls').classList.remove('hidden');
+                document.getElementById('touch-controls').classList.add('flex');
+            }
+
+            const bindTouch = (id, key) => {
+                const btn = document.getElementById(id);
+                btn.addEventListener('touchstart', (e) => { e.preventDefault(); keysPressed[key] = true; });
+                btn.addEventListener('touchend', (e) => { e.preventDefault(); keysPressed[key] = false; });
+            };
+
+            bindTouch('touch-up', 'KeyW');
+            bindTouch('touch-down', 'KeyS');
+            bindTouch('touch-left', 'KeyA');
+            bindTouch('touch-right', 'KeyD');
+
+            document.getElementById('touch-interact').addEventListener('touchstart', (e) => { e.preventDefault(); interact(); });
+            document.getElementById('touch-shoot').addEventListener('touchstart', (e) => { e.preventDefault(); fireWeapon(); });
+        }
+
+        function startGame() {
+            initAudio();
+            document.getElementById('overlay-screen').classList.add('hidden');
+            gameRunning = true;
+            isPaused = false;
+            requestAnimationFrame(gameLoop);
+        }
+
+        function togglePause() {
+            if (!gameRunning) return;
+            isPaused = !isPaused;
+            const overlay = document.getElementById('overlay-screen');
+            if (isPaused) {
+                overlay.classList.remove('hidden');
+                overlay.querySelector('h1').innerText = 'PAUSED';
+                document.getElementById('btn-start').innerText = 'RESUME';
+            } else {
+                overlay.classList.add('hidden');
+            }
+        }
+
+        // --- PLAYER ACTION LOGIC ---
+        function rotatePlayer(angle) {
+            const oldDirX = player.dirX;
+            player.dirX = player.dirX * Math.cos(angle) - player.dirY * Math.sin(angle);
+            player.dirY = oldDirX * Math.sin(angle) + player.dirY * Math.cos(angle);
+            const oldPlaneX = player.planeX;
+            player.planeX = player.planeX * Math.cos(angle) - player.planeY * Math.sin(angle);
+            player.planeY = oldPlaneX * Math.sin(angle) + player.planeY * Math.cos(angle);
+        }
+
+        function fireWeapon() {
+            if (player.isShooting || player.ammo <= 0 || !gameRunning || isPaused) return;
+
+            player.isShooting = true;
+            player.ammo--;
+            player.shootAnimFrame = 1;
+            playSound('shoot');
+            renderHUD();
+
+            // Hitscan Raycast for Weapon Target
+            let hitTarget = null;
+            let minDist = Infinity;
+
+            sprites.forEach(sprite => {
+                if (sprite.type === 'guard' && sprite.health > 0) {
+                    const dx = sprite.x - player.x;
+                    const dy = sprite.y - player.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+
+                    // Angle alignment check
+                    const angleToSprite = Math.atan2(dy, dx);
+                    const playerAngle = Math.atan2(player.dirY, player.dirX);
+                    let diff = Math.abs(angleToSprite - playerAngle);
+                    if (diff > Math.PI) diff = Math.PI * 2 - diff;
+
+                    if (diff < 0.25 && dist < minDist) {
+                        minDist = dist;
+                        hitTarget = sprite;
+                    }
+                }
+            });
+
+            if (hitTarget) {
+                hitTarget.health -= 20;
+                hitTarget.state = 'chase';
+                if (hitTarget.health <= 0) {
+                    playSound('enemy_die');
+                    player.score += 100;
+                    renderHUD();
+                }
+            }
+
+            setTimeout(() => { player.shootAnimFrame = 2; }, 80);
+            setTimeout(() => { player.shootAnimFrame = 0; player.isShooting = false; }, 180);
+        }
+
+        function interact() {
+            // Check door in front of player
+            const checkX = Math.floor(player.x + player.dirX * 0.8);
+            const checkY = Math.floor(player.y + player.dirY * 0.8);
+
+            const door = doors.find(d => d.x === checkX && d.y === checkY);
+            if (door) {
+                if (door.state === 'closed') {
+                    door.state = 'opening';
+                    playSound('door');
+                }
+            }
+
+            // Exit Elevator trigger
+            if (MAP_LEVEL_1[checkY] && MAP_LEVEL_1[checkY][checkX] === 4) {
+                showMessage('LEVEL COMPLETED!');
+                playSound('pickup');
+                setTimeout(() => {
+                    player.level++;
+                    player.score += 500;
+                    initLevel();
+                    renderHUD();
+                }, 1500);
+            }
+        }
+
+        function triggerFlash(type) {
+            const overlay = document.getElementById('flash-overlay');
+            overlay.className = `absolute inset-0 ${type === 'damage' ? 'bg-red-600' : 'bg-yellow-400'} opacity-40 z-20`;
+            setTimeout(() => { overlay.style.opacity = '0'; }, 150);
+        }
+
+        function showMessage(msg) {
+            const el = document.getElementById('game-message');
+            el.innerText = msg;
+            el.style.opacity = '1';
+            setTimeout(() => { el.style.opacity = '0'; }, 2000);
+        }
+
+        // --- UPDATE LOOP ---
+        function update() {
+            if (!gameRunning || isPaused) return;
+
+            const speedMultiplier = keysPressed['ShiftLeft'] || keysPressed['ShiftRight'] ? 1.6 : 1.0;
+            const moveStep = player.moveSpeed * speedMultiplier;
+            const rotStep = player.rotSpeed;
+
+            // Player Movement
+            if (keysPressed['KeyW'] || keysPressed['ArrowUp']) {
+                const newX = player.x + player.dirX * moveStep;
+                const newY = player.y + player.dirY * moveStep;
+                if (!isWall(newX, player.y)) player.x = newX;
+                if (!isWall(player.x, newY)) player.y = newY;
+            }
+            if (keysPressed['KeyS'] || keysPressed['ArrowDown']) {
+                const newX = player.x - player.dirX * moveStep;
+                const newY = player.y - player.dirY * moveStep;
+                if (!isWall(newX, player.y)) player.x = newX;
+                if (!isWall(player.x, newY)) player.y = newY;
+            }
+
+            // Player Rotation
+            if (keysPressed['KeyA'] || keysPressed['ArrowLeft']) rotatePlayer(-rotStep);
+            if (keysPressed['KeyD'] || keysPressed['ArrowRight']) rotatePlayer(rotStep);
+
+            // Door Animations
+            doors.forEach(door => {
+                if (door.state === 'opening') {
+                    door.offset += 0.03;
+                    if (door.offset >= 1) {
+                        door.offset = 1;
+                        door.state = 'open';
+                    }
+                }
+            });
+
+            // Update Enemies AI & Pickups
+            sprites.forEach(sprite => {
+                if (sprite.type === 'guard' && sprite.health > 0) {
+                    const dx = player.x - sprite.x;
+                    const dy = player.y - sprite.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+
+                    if (dist < 6) sprite.state = 'chase';
+
+                    if (sprite.state === 'chase' && dist > 0.8) {
+                        sprite.x += (dx / dist) * 0.02;
+                        sprite.y += (dy / dist) * 0.02;
+                    }
+
+                    // Attack Player
+                    if (dist <= 1.0 && Math.random() < 0.03) {
+                        let damage = 10;
+                        if (player.armor > 0) {
+                            player.armor = Math.max(0, player.armor - 5);
+                            damage = 5;
+                        }
+                        player.health = Math.max(0, player.health - damage);
+                        playSound('hurt');
+                        triggerFlash('damage');
+                        renderHUD();
+                        renderFace(2); // Hurt face
+
+                        if (player.health <= 0) {
+                            gameRunning = false;
+                            showMessage('GAME OVER');
+                            setTimeout(() => location.reload(), 3000);
+                        }
+                    }
+                }
+
+                // Pickups Detection
+                if (!sprite.collected && (sprite.type === 'ammo' || sprite.type === 'health' || sprite.type === 'armor')) {
+                    const dx = player.x - sprite.x;
+                    const dy = player.y - sprite.y;
+                    if (Math.sqrt(dx * dx + dy * dy) < 0.6) {
+                        sprite.collected = true;
+                        playSound('pickup');
+                        triggerFlash('pickup');
+
+                        if (sprite.type === 'ammo') player.ammo += 25;
+                        if (sprite.type === 'health') player.health = Math.min(100, player.health + 30);
+                        if (sprite.type === 'armor') player.armor = Math.min(100, player.armor + 25);
+
+                        renderHUD();
+                    }
+                }
+            });
+        }
+
+        function isWall(x, y) {
+            const mapX = Math.floor(x);
+            const mapY = Math.floor(y);
+            if (mapX < 0 || mapX >= MAP_SIZE || mapY < 0 || mapY >= MAP_SIZE) return true;
+
+            const tile = MAP_LEVEL_1[mapY][mapX];
+            if (tile === 8) {
+                const door = doors.find(d => d.x === mapX && d.y === mapY);
+                return door ? door.offset < 0.8 : true;
+            }
+            return tile !== 0;
+        }
+
+        // --- RENDER ENGINE (3D DDA RAYCASTER) ---
+        function render() {
+            // 1. Draw Ceiling and Textured Floor Plane
+            ctx.fillStyle = '#18181b'; // Dark ceiling
+            ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT / 2);
+
+            // Tiled Floor Rendering
+            const halfH = SCREEN_HEIGHT / 2;
+            ctx.fillStyle = '#09090b';
+            ctx.fillRect(0, halfH, SCREEN_WIDTH, halfH);
+
+            // Draw Repeating Floor Grid Texture Lines for 3D depth effect
+            ctx.strokeStyle = '#27272a';
+            ctx.lineWidth = 1;
+            for (let y = halfH; y < SCREEN_HEIGHT; y += 4) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(SCREEN_WIDTH, y);
+                ctx.stroke();
+            }
+
+            // Buffer Z-Buffer for Sprite Rendering
+            const zBuffer = new Array(SCREEN_WIDTH);
+
+            // 2. DDA Wall Raycasting Loop
+            for (let x = 0; x < SCREEN_WIDTH; x++) {
+                const cameraX = (2 * x) / SCREEN_WIDTH - 1;
+                const rayDirX = player.dirX + player.planeX * cameraX;
+                const rayDirY = player.dirY + player.planeY * cameraX;
+
+                let mapX = Math.floor(player.x);
+                let mapY = Math.floor(player.y);
+
+                let sideDistX, sideDistY;
+                const deltaDistX = Math.abs(1 / rayDirX);
+                const deltaDistY = Math.abs(1 / rayDirY);
+                let perpWallDist;
+
+                let stepX, stepY;
+                let hit = 0;
+                let side = 0;
+
+                if (rayDirX < 0) {
+                    stepX = -1;
+                    sideDistX = (player.x - mapX) * deltaDistX;
+                } else {
+                    stepX = 1;
+                    sideDistX = (mapX + 1.0 - player.x) * deltaDistX;
+                }
+
+                if (rayDirY < 0) {
+                    stepY = -1;
+                    sideDistY = (player.y - mapY) * deltaDistY;
+                } else {
+                    stepY = 1;
+                    sideDistY = (mapY + 1.0 - player.y) * deltaDistY;
+                }
+
+                // DDA Traversal
+                while (hit === 0) {
+                    if (sideDistX < sideDistY) {
+                        sideDistX += deltaDistX;
+                        mapX += stepX;
+                        side = 0;
+                    } else {
+                        sideDistY += deltaDistY;
+                        mapY += stepY;
+                        side = 1;
+                    }
+
+                    if (MAP_LEVEL_1[mapY][mapX] > 0) {
+                        if (MAP_LEVEL_1[mapY][mapX] === 8) {
+                            const door = doors.find(d => d.x === mapX && d.y === mapY);
+                            if (door && door.offset >= 0.9) continue; // Passed through open door
+                        }
+                        hit = 1;
+                    }
+                }
+
+                if (side === 0) perpWallDist = (mapX - player.x + (1 - stepX) / 2) / rayDirX;
+                else perpWallDist = (mapY - player.y + (1 - stepY) / 2) / rayDirY;
+
+                zBuffer[x] = perpWallDist;
+
+                // Calculate Wall Slice Height
+                const lineHeight = Math.floor(SCREEN_HEIGHT / perpWallDist);
+                let drawStart = -lineHeight / 2 + SCREEN_HEIGHT / 2;
+                if (drawStart < 0) drawStart = 0;
+                let drawEnd = lineHeight / 2 + SCREEN_HEIGHT / 2;
+                if (drawEnd >= SCREEN_HEIGHT) drawEnd = SCREEN_HEIGHT - 1;
+
+                // Wall Texture Mapping
+                let wallType = MAP_LEVEL_1[mapY][mapX] - 1;
+                if (wallType < 0 || wallType >= assets.wallTextures.length) wallType = 0;
+                const tex = assets.wallTextures[wallType];
+
+                let wallX;
+                if (side === 0) wallX = player.y + perpWallDist * rayDirY;
+                else wallX = player.x + perpWallDist * rayDirX;
+                wallX -= Math.floor(wallX);
+
+                let texX = Math.floor(wallX * 64);
+                if (side === 0 && rayDirX > 0) texX = 64 - texX - 1;
+                if (side === 1 && rayDirY < 0) texX = 64 - texX - 1;
+
+                // Render Vertical Wall Stripe
+                ctx.drawImage(tex, texX, 0, 1, 64, x, drawStart, 1, drawEnd - drawStart);
+
+                // Lighting Shading for Side Walls
+                if (side === 1) {
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+                    ctx.fillRect(x, drawStart, 1, drawEnd - drawStart);
+                }
+            }
+
+            // 3. Render Billboarded Sprites (Enemies & Pickups)
+            renderSprites(zBuffer);
+
+            // 4. Render Weapon Foreground Animation
+            renderWeapon();
+
+            // 5. Render Overhead Minimap
+            renderMinimap();
+        }
+
+        function renderSprites(zBuffer) {
+            // Sort Sprites Far to Near
+            const sortedSprites = sprites
+                .filter(s => !s.collected)
+                .map(s => {
+                    return { ...s, dist: Math.pow(player.x - s.x, 2) + Math.pow(player.y - s.y, 2) };
+                })
+                .sort((a, b) => b.dist - a.dist);
+
+            sortedSprites.forEach(sprite => {
+                const spriteX = sprite.x - player.x;
+                const spriteY = sprite.y - player.y;
+
+                const invDet = 1.0 / (player.planeX * player.dirY - player.dirX * player.planeY);
+                const transformX = invDet * (player.dirY * spriteX - player.dirX * spriteY);
+                const transformY = invDet * (-player.planeY * spriteX + player.planeX * spriteY);
+
+                if (transformY <= 0) return;
+
+                const spriteScreenX = Math.floor((SCREEN_WIDTH / 2) * (1 + transformX / transformY));
+                const spriteHeight = Math.abs(Math.floor(SCREEN_HEIGHT / transformY));
+                const drawStartY = Math.max(0, -spriteHeight / 2 + SCREEN_HEIGHT / 2);
+                const drawEndY = Math.min(SCREEN_HEIGHT - 1, spriteHeight / 2 + SCREEN_HEIGHT / 2);
+
+                const spriteWidth = Math.abs(Math.floor(SCREEN_HEIGHT / transformY));
+                let drawStartX = Math.floor(-spriteWidth / 2 + spriteScreenX);
+                let drawEndX = Math.floor(spriteWidth / 2 + spriteScreenX);
+
+                // Draw Sprite Graphics
+                for (let stripe = drawStartX; stripe < drawEndX; stripe++) {
+                    if (stripe >= 0 && stripe < SCREEN_WIDTH && transformY < zBuffer[stripe]) {
+                        ctx.fillStyle = getSpriteColor(sprite);
+                        ctx.fillRect(stripe, drawStartY, 1, drawEndY - drawStartY);
+                    }
+                }
+            });
+        }
+
+        function getSpriteColor(sprite) {
+            if (sprite.type === 'guard') return sprite.health > 0 ? '#dc2626' : '#7f1d1d';
+            if (sprite.type === 'ammo') return '#eab308';
+            if (sprite.type === 'health') return '#22c55e';
+            if (sprite.type === 'armor') return '#3b82f6';
+            return '#ffffff';
+        }
+
+        function renderWeapon() {
+            const centerX = SCREEN_WIDTH / 2;
+            const bottomY = SCREEN_HEIGHT;
+
+            ctx.save();
+            if (player.shootAnimFrame > 0) {
+                // Muzzle Flash Effect
+                ctx.fillStyle = '#fef08a';
+                ctx.beginPath();
+                ctx.arc(centerX, bottomY - 55, 18, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = '#f97316';
+                ctx.beginPath();
+                ctx.arc(centerX, bottomY - 55, 10, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Gun Barrel
+            ctx.fillStyle = '#374151';
+            ctx.fillRect(centerX - 10, bottomY - 45, 20, 45);
+            ctx.fillStyle = '#1f2937';
+            ctx.fillRect(centerX - 6, bottomY - 50, 12, 10);
+
+            ctx.restore();
+        }
+
+        // --- HUD & MINIMAP ---
+        function renderHUD() {
+            document.getElementById('hud-level').innerText = player.level.toString().padStart(2, '0');
+            document.getElementById('hud-score').innerText = player.score.toString().padStart(6, '0');
+            document.getElementById('hud-health').innerText = `${player.health}%`;
+            document.getElementById('hud-armor').innerText = `${player.armor}%`;
+            document.getElementById('hud-ammo').innerText = player.ammo.toString();
+        }
+
+        function renderFace(mood) {
+            faceCtx.fillStyle = '#fca5a5';
+            faceCtx.fillRect(0, 0, 64, 64);
+
+            // Hair
+            faceCtx.fillStyle = '#451a03';
+            faceCtx.fillRect(10, 8, 44, 16);
+
+            // Eyes
+            faceCtx.fillStyle = '#000000';
+            if (mood === 2) { // Hurt
+                faceCtx.fillRect(18, 28, 8, 2);
+                faceCtx.fillRect(38, 28, 8, 2);
+            } else {
+                faceCtx.fillRect(18, 26, 8, 6);
+                faceCtx.fillRect(38, 26, 8, 6);
+            }
+
+            // Mouth
+            faceCtx.fillStyle = '#991b1b';
+            faceCtx.fillRect(24, 46, 16, 4);
+        }
+
+        function renderMinimap() {
+            minimapCtx.fillStyle = '#000000';
+            minimapCtx.fillRect(0, 0, 110, 110);
+
+            const scale = 110 / MAP_SIZE;
+
+            // Render Walls
+            for (let y = 0; y < MAP_SIZE; y++) {
+                for (let x = 0; x < MAP_SIZE; x++) {
+                    if (MAP_LEVEL_1[y][x] > 0) {
+                        minimapCtx.fillStyle = MAP_LEVEL_1[y][x] === 8 ? '#f59e0b' : '#4b5563';
+                        minimapCtx.fillRect(x * scale, y * scale, scale - 1, scale - 1);
+                    }
+                }
+            }
+
+            // Render Player
+            minimapCtx.fillStyle = '#ef4444';
+            minimapCtx.beginPath();
+            minimapCtx.arc(player.x * scale, player.y * scale, 3, 0, Math.PI * 2);
+            minimapCtx.fill();
+
+            // Player Direction Vector
+            minimapCtx.strokeStyle = '#ef4444';
+            minimapCtx.lineWidth = 2;
+            minimapCtx.beginPath();
+            minimapCtx.moveTo(player.x * scale, player.y * scale);
+            minimapCtx.lineTo((player.x + player.dirX * 1.5) * scale, (player.y + player.dirY * 1.5) * scale);
+            minimapCtx.stroke();
+        }
+
+        // --- MAIN LOOP ---
+        function gameLoop() {
+            update();
+            render();
+            if (gameRunning) {
+                requestAnimationFrame(gameLoop);
+            }
+        }
+    </script>
+</body>
+</html>
